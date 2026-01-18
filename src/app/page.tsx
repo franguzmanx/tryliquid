@@ -191,7 +191,7 @@ const AnimatedDescription = ({ children, className = "" }: { children: React.Rea
 export default function Home() {
   const [isLightSection, setIsLightSection] = useState(false);
   const navRef = useRef<HTMLElement>(null);
-  const lightSectionRef = useRef<HTMLElement>(null);
+  const lightSectionRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     // Navbar slide-in animation
