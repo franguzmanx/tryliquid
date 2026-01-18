@@ -405,7 +405,7 @@ const LeverageTextOverlay = ({ progress }: { progress: number }) => {
 
   return (
     <div
-      className="flex flex-col items-center gap-2 pb-[35vh]"
+      className="flex flex-col items-center gap-1 sm:gap-2 pb-[35vh] px-4"
       style={{
         opacity: containerOpacity,
         filter: `blur(${blur}px)`,
@@ -413,23 +413,26 @@ const LeverageTextOverlay = ({ progress }: { progress: number }) => {
       }}
     >
       {/* Tagline */}
-      <div className="mb-4">
+      <div className="mb-2 sm:mb-4">
         <AnimatedTagline label="SMALL TEXT" number="02" dark />
       </div>
       <div
-        className="text-[77px] leading-[1.06] font-medium tracking-[-0.02em] text-center text-black"
+        className="text-[40px] sm:text-[60px] md:text-[75px] lg:text-[77px] leading-[1.06] font-medium tracking-[-0.02em] text-center text-black"
         style={{ opacity: topOpacity, transition: "opacity 0.15s ease-out" }}
       >
         With leverage,
       </div>
+      {/* Stacked until lg, then inline */}
       <div
-        className="text-[77px] leading-[1.06] tracking-[-0.02em] whitespace-nowrap text-black flex items-baseline justify-center"
+        className="text-[40px] sm:text-[60px] md:text-[75px] lg:text-[77px] leading-[1.06] tracking-[-0.02em] text-black flex flex-col lg:flex-row items-center lg:items-baseline justify-center text-center"
         style={{ opacity: bottomOpacity, transition: "opacity 0.15s ease-out" }}
       >
-        <span className="font-normal">Your</span>
-        <span className="font-medium mx-[0.2em]">$100</span>
-        <span className="font-normal">becomes</span>
-        <span className="font-medium w-[200px] ml-[0.2em]">
+        <span className="whitespace-nowrap">
+          <span className="font-normal">Your</span>
+          <span className="font-medium mx-[0.2em]">$100</span>
+          <span className="font-normal">becomes</span>
+        </span>
+        <span className="font-medium w-[140px] sm:w-[170px] md:w-[190px] lg:w-[200px] lg:ml-[0.2em]">
           <NumberFlow
             value={amount}
             format={{ style: "currency", currency: "USD", maximumFractionDigits: 0 }}
@@ -460,22 +463,39 @@ const FeatureCard = ({
   const cardProgress = Math.max(0, Math.min(1, (progress - showAt) / 0.15));
   const opacity = cardProgress;
   const blur = 20 * (1 - cardProgress);
+  // On mobile, animate from bottom instead of sides
+  const y = 20 * (1 - cardProgress);
   const x = (side === "left" ? -40 : 40) * (1 - cardProgress);
 
   return (
     <div
-      className="max-w-[320px] p-6"
+      className="max-w-[280px] sm:max-w-[320px] p-4 sm:p-6 bg-white/80 lg:bg-transparent rounded-xl lg:rounded-none backdrop-blur-sm lg:backdrop-blur-none"
       style={{
         opacity,
         filter: `blur(${blur}px)`,
-        transform: `translateX(${x}px)`
       }}
     >
-      <div className="text-black/40 mb-4">{icon}</div>
-      <p className="text-black text-[15px] leading-[22px]">
-        <span className="font-medium">{title}</span>{" "}
-        <span className="text-black/50">{description}</span>
-      </p>
+      {/* Use CSS for responsive transform */}
+      <div
+        className="lg:hidden"
+        style={{ transform: `translateY(${y}px)` }}
+      >
+        <div className="text-black/40 mb-3 sm:mb-4">{icon}</div>
+        <p className="text-black text-[14px] sm:text-[15px] leading-[20px] sm:leading-[22px]">
+          <span className="font-medium">{title}</span>{" "}
+          <span className="text-black/50">{description}</span>
+        </p>
+      </div>
+      <div
+        className="hidden lg:block"
+        style={{ transform: `translateX(${x}px)` }}
+      >
+        <div className="text-black/40 mb-4">{icon}</div>
+        <p className="text-black text-[15px] leading-[22px]">
+          <span className="font-medium">{title}</span>{" "}
+          <span className="text-black/50">{description}</span>
+        </p>
+      </div>
     </div>
   );
 };
@@ -745,7 +765,7 @@ export default function Home() {
       </nav>
 
       {/* Hero Section */}
-      <header className="relative h-[100vh] min-h-[900px] bg-black overflow-hidden">
+      <header className="relative h-[100vh] min-h-[700px] md:min-h-[900px] bg-black overflow-hidden">
         {/* Unicorn Studio Background */}
         <div ref={heroUnicornRef} className="absolute inset-0 z-0 w-full h-full" style={{ opacity: 0 }}>
           <UnicornScene
@@ -756,18 +776,18 @@ export default function Home() {
           />
         </div>
         {/* Content */}
-        <div className="relative z-10 h-full max-w-[1440px] mx-auto px-[35px] flex flex-col">
-          {/* Main Title - Centered vertically, pushed down */}
-          <div className="flex-1 flex items-center pt-[10vh]">
-            <div>
+        <div className="relative z-10 h-full max-w-[1440px] mx-auto px-5 md:px-[35px] flex flex-col">
+          {/* Main Title - Centered on mobile/tablet, left on desktop */}
+          <div className="flex-1 flex items-center justify-center lg:justify-start pt-[10vh]">
+            <div className="text-center lg:text-left">
               <SplitTextHeading
-                className="text-white text-[94px] font-normal leading-[103px] tracking-[-0.06em]"
+                className="text-white text-[60px] sm:text-[80px] md:text-[94px] lg:text-[94px] font-normal leading-[1.1] tracking-[-0.06em]"
                 dimAfter
               >
                 Leverage
               </SplitTextHeading>
               <SplitTextHeading
-                className="text-white text-[94px] font-normal leading-[103px] tracking-[-0.04em]"
+                className="text-white text-[60px] sm:text-[80px] md:text-[94px] lg:text-[94px] font-normal leading-[1.1] tracking-[-0.04em]"
                 delay={0.1}
                 glowAfter
               >
@@ -776,9 +796,9 @@ export default function Home() {
             </div>
           </div>
 
-          {/* Bottom Content */}
-          <div className="flex items-end justify-between pb-[145px]">
-            <AnimatedDescription className="text-white/95 text-[18px] font-normal leading-[25px] max-w-[380px]" immediate>
+          {/* Bottom Content - Centered on mobile/tablet, spread on desktop */}
+          <div className="flex flex-col lg:flex-row items-center lg:items-end justify-center lg:justify-between gap-6 pb-[80px] md:pb-[145px]">
+            <AnimatedDescription className="text-white/95 text-[16px] md:text-[18px] font-normal leading-[25px] max-w-[380px] text-center lg:text-left" immediate>
               Trade from anywhere and multiply your returns by up to 150x.
             </AnimatedDescription>
             <GlowButton>
@@ -789,7 +809,7 @@ export default function Home() {
       </header>
 
       {/* Cut the Noise / Stay Liquid Section */}
-      <section className="relative h-[900px] bg-black overflow-hidden">
+      <section className="relative h-[600px] md:h-[900px] bg-black overflow-hidden">
         {/* Gradient mask top: black to transparent */}
         <div className="absolute top-0 left-0 right-0 h-[200px] bg-gradient-to-b from-black to-transparent pointer-events-none z-10" />
 
@@ -799,17 +819,17 @@ export default function Home() {
         </div>
 
         {/* Content */}
-        <div className="relative z-10 h-full flex flex-col items-center justify-center">
+        <div className="relative z-10 h-full flex flex-col items-center justify-center px-5">
           {/* Animated Tagline */}
           <div className="mb-4">
             <AnimatedTagline label="SMALL TEXT" number="01" />
           </div>
 
           {/* Titles */}
-          <SplitTextHeading className="text-white/40 text-[94px] font-normal leading-[103px] tracking-[-3.76px] text-center">
+          <SplitTextHeading className="text-white/40 text-[45px] sm:text-[70px] md:text-[92px] lg:text-[94px] font-normal leading-[1.1] tracking-[-0.04em] text-center">
             Cut the noise.
           </SplitTextHeading>
-          <SplitTextHeading className="text-white text-[94px] font-normal leading-[103px] tracking-[-3.76px] text-center" delay={0.15}>
+          <SplitTextHeading className="text-white text-[45px] sm:text-[70px] md:text-[92px] lg:text-[94px] font-normal leading-[1.1] tracking-[-0.04em] text-center" delay={0.15}>
             Stay Liquid
           </SplitTextHeading>
         </div>
@@ -849,10 +869,17 @@ export default function Home() {
             backgroundColor="#FFFFFF"
             onProgress={setGlassProgress}
           >
+            {/* Background overlay for mobile readability - fades in when cards appear */}
+            <div
+              className="absolute inset-0 bg-white lg:hidden pointer-events-none"
+              style={{
+                opacity: Math.min(0.6, glassProgress > 0.1 ? (glassProgress - 0.1) * 1.5 : 0)
+              }}
+            />
             {/* Feature Cards Overlay */}
-            <div className="w-full h-full flex items-center justify-between px-8 lg:px-16">
-              {/* Left Side Cards */}
-              <div className="flex flex-col gap-8">
+            <div className="w-full h-full flex flex-col lg:flex-row items-center justify-center lg:justify-between px-4 sm:px-8 lg:px-16 gap-4 lg:gap-0">
+              {/* Left Side Cards - on mobile these show at bottom */}
+              <div className="flex flex-col gap-4 lg:gap-8 order-2 lg:order-1">
                 <FeatureCard
                   icon={<TradeIcon />}
                   title="Instant Trading."
@@ -872,7 +899,7 @@ export default function Home() {
               </div>
 
               {/* Right Side Cards */}
-              <div className="flex flex-col gap-8">
+              <div className="flex flex-col gap-4 lg:gap-8 order-3 lg:order-2">
                 <FeatureCard
                   icon={<ChartIcon />}
                   title="Advanced Analytics."
@@ -899,7 +926,7 @@ export default function Home() {
       </div>
 
       {/* Earn While You Trade Section */}
-      <section className="relative min-h-[1177.88px] bg-black overflow-hidden py-[100px]">
+      <section className="relative min-h-[800px] md:min-h-[1177.88px] bg-black overflow-hidden pt-[120px] md:pt-[180px] pb-[60px] md:pb-[100px]">
         {/* Gradient mask top: white to transparent */}
         <div className="absolute top-0 left-0 right-0 h-[200px] bg-gradient-to-b from-white to-transparent pointer-events-none z-20" />
         {/* Unicorn Studio Background */}
@@ -908,55 +935,64 @@ export default function Home() {
         </div>
 
         {/* Content */}
-        <div className="relative max-w-[1440px] mx-auto px-[100px]">
+        <div className="relative max-w-[1440px] mx-auto px-5 sm:px-8 md:px-[60px] lg:px-[100px]">
           {/* Animated Tagline */}
           <div className="flex justify-center">
             <AnimatedTagline label="SMALL TEXT" number="01" />
           </div>
 
-          {/* Title */}
-          <div className="flex items-baseline justify-center gap-4 mt-4 flex-wrap">
-            <SplitTextHeading className="text-white/40 text-[83.9px] font-normal leading-[103.4px] tracking-[-3.76px]">
+          {/* Title - stacked on mobile, inline on larger screens */}
+          <div className="flex flex-col md:flex-row items-center md:items-baseline justify-center gap-0 md:gap-4 mt-4">
+            <SplitTextHeading className="text-white/40 text-[45px] sm:text-[60px] md:text-[80px] lg:text-[83.9px] font-normal leading-[1.1] tracking-[-0.04em] text-center">
               Earn while you
             </SplitTextHeading>
-            <SplitTextHeading className="text-white text-[80.6px] font-normal leading-[103.4px] tracking-[-3.76px]" delay={0.1}>
+            <SplitTextHeading className="text-white text-[45px] sm:text-[60px] md:text-[80px] lg:text-[80.6px] font-normal leading-[1.1] tracking-[-0.04em] text-center" delay={0.1}>
               trade.
             </SplitTextHeading>
           </div>
 
           {/* Description and CTA */}
           <div className="flex flex-col items-center mt-4">
-            <AnimatedDescription className="text-white/60 text-[18px] font-normal leading-[28px] max-w-[520px] text-center">
+            <AnimatedDescription className="text-white/60 text-[16px] md:text-[18px] font-normal leading-[26px] md:leading-[28px] max-w-[520px] text-center px-4">
               Earn yield on your collateral while maintaining full trading power. Your assets work for you, even when you&apos;re not actively trading.
             </AnimatedDescription>
-            <div className="mt-8">
+            <div className="mt-6 md:mt-8">
               <GlowButton>
                 Launch App
               </GlowButton>
             </div>
           </div>
 
-          {/* Trading UI Image */}
-          <div className="relative mt-[60px] mx-auto max-w-[1050px] h-[675px]" style={{ perspective: "1200px" }}>
+          {/* Trading UI Image - preserve aspect ratio, allow overflow */}
+          <div className="relative mt-[40px] md:mt-[60px] mx-auto w-full overflow-x-auto overflow-y-hidden" style={{ perspective: "1200px" }}>
             <div
-              ref={tradingUIRef}
-              className="absolute inset-0 rounded-[20px] overflow-hidden border border-neutral-800"
-              style={{ transformStyle: "preserve-3d", transformOrigin: "center bottom" }}
+              className="relative mx-auto"
+              style={{
+                width: "min(100%, 1050px)",
+                minWidth: "600px",
+                aspectRatio: "1050 / 675"
+              }}
             >
-              <Image
-                src="/images/trading-ui.png"
-                alt="Trading Interface"
-                fill
-                className="object-cover mix-blend-screen"
+              <div
+                ref={tradingUIRef}
+                className="absolute inset-0 rounded-[12px] md:rounded-[20px] overflow-hidden border border-neutral-800"
+                style={{ transformStyle: "preserve-3d", transformOrigin: "center bottom" }}
+              >
+                <Image
+                  src="/images/trading-ui.png"
+                  alt="Trading Interface"
+                  fill
+                  className="object-cover mix-blend-screen"
               />
               {/* Top border with rounded corners - on top of gray */}
-              <div className="absolute inset-0 rounded-[20px] pointer-events-none z-20" style={{
+              <div className="absolute inset-0 rounded-[12px] md:rounded-[20px] pointer-events-none z-20" style={{
                 background: 'linear-gradient(to bottom, rgba(255,255,255,0.6) 0%, transparent 3%, transparent 97%, rgba(255,255,255,0.6) 100%)',
                 WebkitMask: 'linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0)',
                 WebkitMaskComposite: 'xor',
                 maskComposite: 'exclude',
                 padding: '1px'
               }} />
+              </div>
             </div>
           </div>
         </div>
@@ -965,8 +1001,78 @@ export default function Home() {
       {/* Footer */}
       <footer className="relative bg-black overflow-hidden flex flex-col">
         {/* Top - Content */}
-        <div ref={footerContentRef} className="max-w-[1440px] mx-auto px-[120px] pt-[100px] pb-[50px] w-full">
-          <div className="flex justify-between">
+        <div ref={footerContentRef} className="max-w-[1440px] mx-auto px-5 sm:px-8 md:px-[60px] lg:px-[120px] pt-[60px] md:pt-[100px] pb-[30px] md:pb-[50px] w-full">
+          {/* Mobile/Tablet Layout */}
+          <div className="flex flex-col lg:hidden gap-10">
+            {/* Logo and Social Icons Row */}
+            <div className="flex justify-between items-start">
+              <div className="footer-animate">
+                <LiquidLogo />
+              </div>
+              {/* Social Icons */}
+              <div className="flex items-center gap-5">
+                <Link href="#" className="footer-animate text-white hover:opacity-80 transition-opacity">
+                  <ContraIcon />
+                </Link>
+                <Link href="#" className="footer-animate text-white hover:opacity-80 transition-opacity">
+                  <MediumIcon />
+                </Link>
+                <Link href="https://x.com/liquidtrading" className="footer-animate text-white hover:opacity-80 transition-opacity">
+                  <XIcon />
+                </Link>
+              </div>
+            </div>
+
+            {/* Links Grid */}
+            <div className="grid grid-cols-2 gap-8">
+              {/* Main Links */}
+              <div className="flex flex-col gap-4">
+                <Link
+                  href="https://docs.tryliquid.xyz/"
+                  className="footer-animate text-white text-[15px] font-medium tracking-[-0.64px] leading-[22.4px] hover:opacity-80 transition-opacity"
+                >
+                  Docs
+                </Link>
+                <Link
+                  href="https://tryliquid.xyz/support"
+                  className="footer-animate text-white text-[15px] font-medium tracking-[-0.64px] leading-[22.4px] hover:opacity-80 transition-opacity"
+                >
+                  Support
+                </Link>
+                <Link
+                  href="#"
+                  className="footer-animate text-white text-[15px] font-medium tracking-[-0.64px] leading-[22.4px] hover:opacity-80 transition-opacity"
+                >
+                  About
+                </Link>
+              </div>
+
+              {/* Legal Links */}
+              <div className="flex flex-col gap-4">
+                <Link
+                  href="https://tryliquid.xyz/termsofservice"
+                  className="footer-animate text-white text-[15px] font-medium tracking-[-0.64px] leading-[22.4px] hover:opacity-80 transition-opacity"
+                >
+                  Terms of Service
+                </Link>
+                <Link
+                  href="https://tryliquid.xyz/privacy"
+                  className="footer-animate text-white text-[15px] font-medium tracking-[-0.64px] leading-[22.4px] hover:opacity-80 transition-opacity"
+                >
+                  Privacy Policy
+                </Link>
+                <Link
+                  href="https://tryliquid.xyz/brand"
+                  className="footer-animate text-white text-[15px] font-medium tracking-[-0.64px] leading-[22.4px] hover:opacity-80 transition-opacity"
+                >
+                  Brand Kit
+                </Link>
+              </div>
+            </div>
+          </div>
+
+          {/* Desktop Layout */}
+          <div className="hidden lg:flex justify-between">
             {/* Logo and Links */}
             <div className="flex gap-[100px]">
               {/* Logo */}
@@ -1037,11 +1143,11 @@ export default function Home() {
         {/* Bottom - Unicorn Studio Background with mask */}
         <div
           ref={footerUnicornRef}
-          className="relative w-full h-[712px]"
+          className="relative w-full h-[400px] sm:h-[500px] md:h-[600px] lg:h-[712px]"
           style={{
             opacity: 0,
-            mask: 'linear-gradient(0deg, rgba(0, 0, 0, 0) 0%, rgb(0, 0, 0) 7.63%, rgb(0, 0, 0) 86.96%, rgba(0, 0, 0, 0) 97.38%)',
-            WebkitMask: 'linear-gradient(0deg, rgba(0, 0, 0, 0) 0%, rgb(0, 0, 0) 7.63%, rgb(0, 0, 0) 86.96%, rgba(0, 0, 0, 0) 97.38%)'
+            mask: 'linear-gradient(0deg, rgba(0, 0, 0, 0) 0%, rgb(0, 0, 0) 5%, rgb(0, 0, 0) 90%, rgba(0, 0, 0, 0) 100%)',
+            WebkitMask: 'linear-gradient(0deg, rgba(0, 0, 0, 0) 0%, rgb(0, 0, 0) 5%, rgb(0, 0, 0) 90%, rgba(0, 0, 0, 0) 100%)'
           }}
         >
           <UnicornScene
