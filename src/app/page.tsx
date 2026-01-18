@@ -350,6 +350,9 @@ export default function Home() {
             Stay Liquid
           </SplitTextHeading>
         </div>
+
+        {/* Gradient mask bottom: #F0F3F2 to transparent */}
+        <div className="absolute bottom-0 left-0 right-0 h-[200px] bg-gradient-to-t from-[#F0F3F2] to-transparent pointer-events-none z-20" />
       </section>
 
       {/* White Sections Container */}
