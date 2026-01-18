@@ -44,34 +44,38 @@ export default function LeverageScroll({
 
     if (!containerRef.current) return;
 
-    // Delay to ensure DOM is ready after hydration
-    const timeout = setTimeout(() => {
+    let trigger: ScrollTrigger | null = null;
+
+    // Wait for DOM to be fully ready
+    const initTimeout = setTimeout(() => {
+      if (!containerRef.current) return;
+
+      trigger = ScrollTrigger.create({
+        trigger: containerRef.current,
+        start: "top top",
+        end: "bottom bottom",
+        scrub: 0.5, // Smoother scrub
+        onUpdate: (self) => {
+          const progress = self.progress;
+          const leverage = minLeverage + progress * (maxLeverage - minLeverage);
+          const t = Math.max(0, Math.min(1, (leverage - minLeverage) / (maxLeverage - minLeverage)));
+          const amount = baseAmount + t * (maxAmount - baseAmount);
+          setAmountText(formatCurrency(amount, currencySymbol));
+        },
+      });
+
       ScrollTrigger.refresh();
-    }, 100);
+    }, 200);
 
-    const trigger = ScrollTrigger.create({
-      trigger: containerRef.current,
-      start: "top top",
-      end: "bottom bottom",
-      scrub: true,
-      onUpdate: (self) => {
-        const progress = self.progress;
-        const leverage = minLeverage + progress * (maxLeverage - minLeverage);
-        const t = Math.max(0, Math.min(1, (leverage - minLeverage) / (maxLeverage - minLeverage)));
-        const amount = baseAmount + t * (maxAmount - baseAmount);
-        setAmountText(formatCurrency(amount, currencySymbol));
-      },
-    });
-
-    // Refresh after content might have loaded
+    // Refresh again after content loads
     const refreshTimeout = setTimeout(() => {
       ScrollTrigger.refresh();
-    }, 1000);
+    }, 1500);
 
     return () => {
-      clearTimeout(timeout);
+      clearTimeout(initTimeout);
       clearTimeout(refreshTimeout);
-      trigger.kill();
+      if (trigger) trigger.kill();
     };
   }, [baseAmount, maxAmount, minLeverage, maxLeverage, currencySymbol]);
 

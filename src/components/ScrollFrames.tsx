@@ -44,33 +44,37 @@ export default function ScrollFrames({
 
     if (!containerRef.current) return;
 
-    // Delay to ensure DOM is ready after hydration
-    const timeout = setTimeout(() => {
+    let trigger: ScrollTrigger | null = null;
+
+    // Wait for DOM to be fully ready
+    const initTimeout = setTimeout(() => {
+      if (!containerRef.current) return;
+
+      trigger = ScrollTrigger.create({
+        trigger: containerRef.current,
+        start: "top top",
+        end: "bottom bottom",
+        scrub: 0.5, // Smoother scrub
+        onUpdate: (self) => {
+          const frame = Math.round(self.progress * (frameCount - 1)) + 1;
+          if (!isNaN(frame) && frame >= 1 && frame <= frameCount) {
+            setCurrentFrame(frame);
+          }
+        },
+      });
+
       ScrollTrigger.refresh();
-    }, 100);
+    }, 200);
 
-    const trigger = ScrollTrigger.create({
-      trigger: containerRef.current,
-      start: "top top",
-      end: "bottom bottom",
-      scrub: true,
-      onUpdate: (self) => {
-        const frame = Math.round(self.progress * (frameCount - 1)) + 1;
-        if (!isNaN(frame) && frame >= 1 && frame <= frameCount) {
-          setCurrentFrame(frame);
-        }
-      },
-    });
-
-    // Refresh after images might have loaded
+    // Refresh again after images load
     const refreshTimeout = setTimeout(() => {
       ScrollTrigger.refresh();
-    }, 1000);
+    }, 1500);
 
     return () => {
-      clearTimeout(timeout);
+      clearTimeout(initTimeout);
       clearTimeout(refreshTimeout);
-      trigger.kill();
+      if (trigger) trigger.kill();
     };
   }, [frameCount]);
 
