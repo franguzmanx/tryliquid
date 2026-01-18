@@ -56,3 +56,32 @@ body {
 .text-shadow-glow {
   text-shadow: 0 0 40px rgba(255, 255, 255, 0.3);
 }
+
+/* Custom Scrollbar - Only visible when scrolling */
+html {
+  scrollbar-width: thin;
+  scrollbar-color: transparent transparent;
+}
+
+html.is-scrolling {
+  scrollbar-color: rgba(255, 255, 255, 0.1) transparent;
+}
+
+/* Webkit browsers (Chrome, Safari, Edge) */
+::-webkit-scrollbar {
+  width: 12px;
+  background: transparent;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: transparent;
+  border-radius: 6px;
+}
+
+html.is-scrolling::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.1);
+}

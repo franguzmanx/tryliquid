@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, useCallback } from "react";
 import gsap from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 
@@ -23,26 +23,62 @@ export default function ScrollFrames({
 }: ScrollFramesProps) {
   const [currentFrame, setCurrentFrame] = useState(1);
   const [imagesLoaded, setImagesLoaded] = useState(false);
+  const [canvasReady, setCanvasReady] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
+  const canvasRef = useRef<HTMLCanvasElement>(null);
   const imagesRef = useRef<HTMLImageElement[]>([]);
+  const hasDrawnFirstFrame = useRef(false);
+
+  // Draw frame on canvas
+  const drawFrame = useCallback((frameIndex: number) => {
+    if (!canvasRef.current || !imagesRef.current[frameIndex]) return false;
+
+    const canvas = canvasRef.current;
+    const ctx = canvas.getContext('2d');
+    if (!ctx) return false;
+
+    const img = imagesRef.current[frameIndex];
+    if (img.complete && img.naturalWidth > 0) {
+      canvas.width = img.naturalWidth;
+      canvas.height = img.naturalHeight;
+      ctx.drawImage(img, 0, 0);
+      return true;
+    }
+    return false;
+  }, []);
 
   // Preload all images
   useEffect(() => {
     let loadedCount = 0;
     imagesRef.current = [];
+    hasDrawnFirstFrame.current = false;
+    setCanvasReady(false);
 
     for (let i = 1; i <= frameCount; i++) {
       const img = new Image();
       img.src = `${basePath}${String(i).padStart(4, "0")}.jpg`;
       img.onload = () => {
         loadedCount++;
-        if (loadedCount >= frameCount * 0.5) { // Start when 50% loaded
+
+        // When first image loads, draw it immediately and show canvas
+        if (i === 1 && !hasDrawnFirstFrame.current) {
+          // Use requestAnimationFrame to ensure canvas is ready
+          requestAnimationFrame(() => {
+            const drawn = drawFrame(0);
+            if (drawn) {
+              hasDrawnFirstFrame.current = true;
+              setCanvasReady(true);
+            }
+          });
+        }
+
+        if (loadedCount >= frameCount * 0.5) {
           setImagesLoaded(true);
         }
       };
       imagesRef.current.push(img);
     }
-  }, [frameCount, basePath]);
+  }, [frameCount, basePath, drawFrame]);
 
   useEffect(() => {
     gsap.registerPlugin(ScrollTrigger);
@@ -51,7 +87,6 @@ export default function ScrollFrames({
 
     let trigger: ScrollTrigger | null = null;
 
-    // Small delay after images loaded
     const initTimeout = setTimeout(() => {
       if (!containerRef.current) return;
 
@@ -73,11 +108,9 @@ export default function ScrollFrames({
       ScrollTrigger.refresh();
     }, 100);
 
-    // Refresh on window load
     const handleLoad = () => ScrollTrigger.refresh();
     window.addEventListener('load', handleLoad);
 
-    // Refresh on resize
     const handleResize = () => ScrollTrigger.refresh();
     window.addEventListener('resize', handleResize);
 
@@ -87,25 +120,14 @@ export default function ScrollFrames({
       window.removeEventListener('resize', handleResize);
       if (trigger) trigger.kill();
     };
-  }, [frameCount, imagesLoaded]);
+  }, [frameCount, imagesLoaded, onProgress]);
 
-  // Draw current frame on canvas
-  const canvasRef = useRef<HTMLCanvasElement>(null);
-
+  // Draw current frame on canvas (for scroll updates)
   useEffect(() => {
-    if (!canvasRef.current || !imagesRef.current[currentFrame - 1]) return;
-
-    const canvas = canvasRef.current;
-    const ctx = canvas.getContext('2d');
-    if (!ctx) return;
-
-    const img = imagesRef.current[currentFrame - 1];
-    if (img.complete && img.naturalWidth > 0) {
-      canvas.width = img.naturalWidth;
-      canvas.height = img.naturalHeight;
-      ctx.drawImage(img, 0, 0);
+    if (currentFrame > 1 || hasDrawnFirstFrame.current) {
+      drawFrame(currentFrame - 1);
     }
-  }, [currentFrame]);
+  }, [currentFrame, drawFrame]);
 
   return (
     <div
@@ -136,6 +158,8 @@ export default function ScrollFrames({
             width: "100%",
             height: "100%",
             objectFit: "cover",
+            opacity: canvasReady ? 1 : 0,
+            transition: "opacity 0.5s ease-out",
           }}
         />
         {/* Overlay content */}

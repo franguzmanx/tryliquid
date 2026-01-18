@@ -64,7 +64,7 @@ const XIcon = () => (
 );
 
 // Button with glow effect
-const GlowButton = ({ children, className = "", dark = false }: { children: React.ReactNode; className?: string; dark?: boolean }) => {
+const GlowButton = ({ children, className = "", dark = false, outline = false }: { children: React.ReactNode; className?: string; dark?: boolean; outline?: boolean }) => {
   const buttonRef = useRef<HTMLAnchorElement>(null);
 
   const handleMouseEnter = () => {
@@ -91,13 +91,20 @@ const GlowButton = ({ children, className = "", dark = false }: { children: Reac
     }
   };
 
+  const getButtonStyles = () => {
+    if (outline) {
+      return "bg-transparent border border-white/50 text-white hover:border-white hover:bg-white/10";
+    }
+    return dark ? "bg-[#141414] text-white" : "bg-[#f2f2f2] text-[#141414]";
+  };
+
   return (
     <Link
       ref={buttonRef}
       href="#"
       onMouseEnter={handleMouseEnter}
       onMouseLeave={handleMouseLeave}
-      className={`${dark ? "bg-[#141414] text-white" : "bg-[#f2f2f2] text-[#141414]"} px-7 py-3 rounded-full text-[15px] font-medium tracking-[-0.64px] transition-colors duration-300 ease-in-out ${className}`}
+      className={`${getButtonStyles()} px-7 py-3 rounded-full text-[15px] font-medium tracking-[-0.64px] transition-all duration-300 ease-in-out ${className}`}
     >
       {children}
     </Link>
@@ -254,6 +261,131 @@ const AnimatedDescription = ({ children, className = "", immediate = false }: { 
   );
 };
 
+// Animated Tagline Component with line growth
+const AnimatedTagline = ({
+  label,
+  number,
+  dark = false
+}: {
+  label: string;
+  number: string;
+  dark?: boolean;
+}) => {
+  const containerRef = useRef<HTMLDivElement>(null);
+  const labelCharsRef = useRef<HTMLSpanElement[]>([]);
+  const lineRef = useRef<HTMLDivElement>(null);
+  const numberCharsRef = useRef<HTMLSpanElement[]>([]);
+
+  useEffect(() => {
+    if (!containerRef.current) return;
+
+    const tl = gsap.timeline({
+      scrollTrigger: {
+        trigger: containerRef.current,
+        start: "top 85%",
+        toggleActions: "play none none none"
+      }
+    });
+
+    // 1. Label text animates in (character by character)
+    if (labelCharsRef.current.length > 0) {
+      tl.fromTo(
+        labelCharsRef.current,
+        { yPercent: 100 },
+        {
+          yPercent: 0,
+          duration: 0.6,
+          stagger: 0.02,
+          ease: "power3.out"
+        }
+      );
+    }
+
+    // 2. Line grows horizontally
+    if (lineRef.current) {
+      tl.fromTo(
+        lineRef.current,
+        { scaleX: 0 },
+        {
+          scaleX: 1,
+          duration: 0.5,
+          ease: "power2.out"
+        },
+        "-=0.2"
+      );
+    }
+
+    // 3. Number text animates in
+    if (numberCharsRef.current.length > 0) {
+      tl.fromTo(
+        numberCharsRef.current,
+        { yPercent: 100 },
+        {
+          yPercent: 0,
+          duration: 0.5,
+          stagger: 0.03,
+          ease: "power3.out"
+        },
+        "-=0.2"
+      );
+    }
+  }, []);
+
+  const labelChars = label.split("");
+  const numberChars = number.split("");
+  const textColor = dark ? "text-black/40" : "text-white/40";
+  const lineColor = dark ? "bg-black/20" : "bg-white/20";
+
+  return (
+    <div ref={containerRef} className="flex items-center gap-3">
+      {/* Label text */}
+      <span className={`${textColor} text-[13.5px] tracking-[0.98px] font-normal`}>
+        {labelChars.map((char, index) => (
+          <span
+            key={index}
+            className="inline-block overflow-hidden"
+          >
+            <span
+              ref={(el) => {
+                if (el) labelCharsRef.current[index] = el;
+              }}
+              className="inline-block"
+            >
+              {char === " " ? "\u00A0" : char}
+            </span>
+          </span>
+        ))}
+      </span>
+
+      {/* Growing line */}
+      <div
+        ref={lineRef}
+        className={`w-[34px] h-[2px] ${lineColor} origin-left`}
+        style={{ transform: "scaleX(0)" }}
+      />
+
+      {/* Number text */}
+      <span className={`${textColor} text-[14px] tracking-[0.98px] font-normal`}>
+        {numberChars.map((char, index) => (
+          <span
+            key={index}
+            className="inline-block overflow-hidden"
+          >
+            <span
+              ref={(el) => {
+                if (el) numberCharsRef.current[index] = el;
+              }}
+              className="inline-block"
+            >
+              {char}
+            </span>
+          </span>
+        ))}
+      </span>
+    </div>
+  );
+};
+
 // Leverage Text Overlay Component
 const LeverageTextOverlay = ({ progress }: { progress: number }) => {
   const baseAmount = 100;
@@ -280,6 +412,10 @@ const LeverageTextOverlay = ({ progress }: { progress: number }) => {
         transition: "opacity 0.1s ease-out, filter 0.1s ease-out"
       }}
     >
+      {/* Tagline */}
+      <div className="mb-4">
+        <AnimatedTagline label="SMALL TEXT" number="02" dark />
+      </div>
       <div
         className="text-[77px] leading-[1.06] font-medium tracking-[-0.02em] text-center text-black"
         style={{ opacity: topOpacity, transition: "opacity 0.15s ease-out" }}
@@ -290,10 +426,10 @@ const LeverageTextOverlay = ({ progress }: { progress: number }) => {
         className="text-[77px] leading-[1.06] tracking-[-0.02em] whitespace-nowrap text-black flex items-baseline justify-center"
         style={{ opacity: bottomOpacity, transition: "opacity 0.15s ease-out" }}
       >
-        <span className="font-normal">Your </span>
-        <span className="font-medium">$100</span>
-        <span className="font-normal"> becomes</span>
-        <span className="font-medium w-[200px] ml-[0.25em]">
+        <span className="font-normal">Your</span>
+        <span className="font-medium mx-[0.2em]">$100</span>
+        <span className="font-normal">becomes</span>
+        <span className="font-medium w-[200px] ml-[0.2em]">
           <NumberFlow
             value={amount}
             format={{ style: "currency", currency: "USD", maximumFractionDigits: 0 }}
@@ -376,6 +512,7 @@ export default function Home() {
   const navRef = useRef<HTMLElement>(null);
   const heroUnicornRef = useRef<HTMLDivElement>(null);
   const lightSectionRef = useRef<HTMLDivElement>(null);
+  const waterDropSectionRef = useRef<HTMLElement>(null);
   const glassSectionRef = useRef<HTMLElement>(null);
   const tradingUIRef = useRef<HTMLDivElement>(null);
   const footerContentRef = useRef<HTMLDivElement>(null);
@@ -393,6 +530,16 @@ export default function Home() {
 
     // Connect Lenis to GSAP ScrollTrigger
     lenis.on('scroll', ScrollTrigger.update);
+
+    // Show scrollbar when scrolling, hide after idle
+    let scrollTimeout: NodeJS.Timeout;
+    lenis.on('scroll', () => {
+      document.documentElement.classList.add('is-scrolling');
+      clearTimeout(scrollTimeout);
+      scrollTimeout = setTimeout(() => {
+        document.documentElement.classList.remove('is-scrolling');
+      }, 1000);
+    });
 
     gsap.ticker.add((time) => {
       lenis.raf(time * 1000);
@@ -467,6 +614,26 @@ export default function Home() {
       );
     }
 
+    // Water drop section fade-in animation
+    if (waterDropSectionRef.current) {
+      gsap.fromTo(
+        waterDropSectionRef.current,
+        {
+          opacity: 0
+        },
+        {
+          opacity: 1,
+          duration: 1,
+          ease: "power2.out",
+          scrollTrigger: {
+            trigger: waterDropSectionRef.current,
+            start: "top 80%",
+            toggleActions: "play none none none"
+          }
+        }
+      );
+    }
+
     // Glass section fade-in animation
     if (glassSectionRef.current) {
       gsap.fromTo(
@@ -534,6 +701,8 @@ export default function Home() {
     }
 
     return () => {
+      clearTimeout(scrollTimeout);
+      document.documentElement.classList.remove('is-scrolling');
       lenis.destroy();
       ScrollTrigger.getAll().forEach(t => t.kill());
     };
@@ -581,7 +750,7 @@ export default function Home() {
           </div>
 
           {/* CTA Button */}
-          <GlowButton dark={isLightSection}>
+          <GlowButton dark={isLightSection} outline={!isLightSection}>
             Launch App
           </GlowButton>
         </div>
@@ -643,15 +812,9 @@ export default function Home() {
 
         {/* Content */}
         <div className="relative z-10 h-full flex flex-col items-center justify-center">
-          {/* Badge */}
-          <div className="flex items-center gap-3 mb-4">
-            <span className="text-white/40 text-[13.5px] tracking-[0.98px] font-normal">
-              SMALL TEXT
-            </span>
-            <div className="w-[34px] h-[2px] bg-white/20" />
-            <span className="text-white/40 text-[14px] tracking-[0.98px] font-normal">
-              01
-            </span>
+          {/* Animated Tagline */}
+          <div className="mb-4">
+            <AnimatedTagline label="SMALL TEXT" number="01" />
           </div>
 
           {/* Titles */}
@@ -670,7 +833,7 @@ export default function Home() {
       {/* White Sections Container */}
       <div ref={lightSectionRef}>
         {/* Water Drop Animation with Leverage Text - White Background */}
-        <section className="relative bg-white">
+        <section ref={waterDropSectionRef} className="relative bg-white" style={{ opacity: 0 }}>
           {/* Gradient mask top: gray to transparent */}
           <div className="absolute top-0 left-0 right-0 h-[200px] bg-gradient-to-b from-[#F1F4F2] to-transparent pointer-events-none z-20" />
           <ScrollFrames
@@ -687,7 +850,7 @@ export default function Home() {
         </section>
 
         {/* Phone/Glass Animation with Feature Cards - White Background */}
-        <section className="relative bg-white">
+        <section ref={glassSectionRef} className="relative bg-white" style={{ opacity: 0 }}>
           {/* Gradient mask top */}
           <div className="absolute top-0 left-0 right-0 h-[200px] bg-gradient-to-b from-white to-transparent pointer-events-none z-20" />
 
@@ -758,15 +921,9 @@ export default function Home() {
 
         {/* Content */}
         <div className="relative max-w-[1440px] mx-auto px-[100px]">
-          {/* Badge */}
-          <div className="flex items-center justify-center gap-3">
-            <span className="text-white/40 text-[13.5px] tracking-[0.98px] font-normal">
-              SMALL TEXT
-            </span>
-            <div className="w-[34px] h-[2px] bg-white/20" />
-            <span className="text-white/40 text-[14px] tracking-[0.98px] font-normal">
-              01
-            </span>
+          {/* Animated Tagline */}
+          <div className="flex justify-center">
+            <AnimatedTagline label="SMALL TEXT" number="01" />
           </div>
 
           {/* Title */}
@@ -780,7 +937,7 @@ export default function Home() {
           </div>
 
           {/* Description and CTA */}
-          <div className="flex flex-col items-center mt-8">
+          <div className="flex flex-col items-center mt-4">
             <AnimatedDescription className="text-white/60 text-[18px] font-normal leading-[28px] max-w-[520px] text-center">
               Earn yield on your collateral while maintaining full trading power. Your assets work for you, even when you&apos;re not actively trading.
             </AnimatedDescription>
