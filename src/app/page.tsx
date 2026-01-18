@@ -153,33 +153,53 @@ const SplitTextHeading = ({ children, className = "", delay = 0 }: { children: s
 };
 
 // Animated Description Component
-const AnimatedDescription = ({ children, className = "" }: { children: React.ReactNode; className?: string }) => {
+const AnimatedDescription = ({ children, className = "", immediate = false }: { children: React.ReactNode; className?: string; immediate?: boolean }) => {
   const descRef = useRef<HTMLParagraphElement>(null);
 
   useEffect(() => {
     if (!descRef.current) return;
 
-    gsap.fromTo(
-      descRef.current,
-      {
-        opacity: 0,
-        filter: "blur(10px)",
-        y: 20
-      },
-      {
-        opacity: 0.8,
-        filter: "blur(0px)",
-        y: 0,
-        duration: 0.8,
-        ease: "power2.out",
-        scrollTrigger: {
-          trigger: descRef.current,
-          start: "top 85%",
-          toggleActions: "play none none none"
+    if (immediate) {
+      // Animate immediately with a small delay
+      gsap.fromTo(
+        descRef.current,
+        {
+          opacity: 0,
+          filter: "blur(10px)",
+          y: 20
+        },
+        {
+          opacity: 0.8,
+          filter: "blur(0px)",
+          y: 0,
+          duration: 0.8,
+          delay: 0.5,
+          ease: "power2.out"
         }
-      }
-    );
-  }, []);
+      );
+    } else {
+      gsap.fromTo(
+        descRef.current,
+        {
+          opacity: 0,
+          filter: "blur(10px)",
+          y: 20
+        },
+        {
+          opacity: 0.8,
+          filter: "blur(0px)",
+          y: 0,
+          duration: 0.8,
+          ease: "power2.out",
+          scrollTrigger: {
+            trigger: descRef.current,
+            start: "top 85%",
+            toggleActions: "play none none none"
+          }
+        }
+      );
+    }
+  }, [immediate]);
 
   return (
     <p ref={descRef} className={className}>
@@ -292,7 +312,7 @@ export default function Home() {
 
           {/* Bottom Content */}
           <div className="flex items-end justify-between pb-[150px]">
-            <AnimatedDescription className="text-white/95 text-[18px] font-normal leading-[25px] max-w-[380px]">
+            <AnimatedDescription className="text-white/95 text-[18px] font-normal leading-[25px] max-w-[380px]" immediate>
               Trade from anywhere and multiply your returns by up to 150x.
             </AnimatedDescription>
             <GlowButton>
@@ -435,67 +455,65 @@ export default function Home() {
       {/* Footer */}
       <footer className="relative h-[1049px] bg-black overflow-hidden">
         {/* Content */}
-        <div className="relative z-10 h-full max-w-[1440px] mx-auto px-[120px]">
-          <div className="pt-[100px] flex justify-between">
-            {/* Links */}
-            <div className="flex gap-[100px]">
-              {/* Main Links */}
-              <div className="flex flex-col gap-[16px]">
-                <Link
-                  href="https://docs.tryliquid.xyz/"
-                  className="text-white text-[15.3px] font-medium tracking-[-0.64px] leading-[22.4px] hover:opacity-80 transition-opacity"
-                >
-                  Docs
-                </Link>
-                <Link
-                  href="https://tryliquid.xyz/support"
-                  className="text-white text-[15.3px] font-medium tracking-[-0.64px] leading-[22.4px] hover:opacity-80 transition-opacity"
-                >
-                  Support
-                </Link>
-                <Link
-                  href="#"
-                  className="text-white text-[15.3px] font-medium tracking-[-0.64px] leading-[22.4px] hover:opacity-80 transition-opacity"
-                >
-                  About
-                </Link>
-              </div>
-
-              {/* Legal Links */}
-              <div className="flex flex-col gap-[16px]">
-                <Link
-                  href="https://tryliquid.xyz/termsofservice"
-                  className="text-white text-[15.1px] font-medium tracking-[-0.64px] leading-[22.4px] hover:opacity-80 transition-opacity"
-                >
-                  Terms of Service
-                </Link>
-                <Link
-                  href="https://tryliquid.xyz/privacy"
-                  className="text-white text-[15.1px] font-medium tracking-[-0.64px] leading-[22.4px] hover:opacity-80 transition-opacity"
-                >
-                  Privacy Policy
-                </Link>
-                <Link
-                  href="https://tryliquid.xyz/brand"
-                  className="text-white text-[15.1px] font-medium tracking-[-0.64px] leading-[22.4px] hover:opacity-80 transition-opacity"
-                >
-                  Brand Kit
-                </Link>
-              </div>
-            </div>
-
-            {/* Social Icons */}
-            <div className="flex items-start gap-6">
-              <Link href="#" className="text-white hover:opacity-80 transition-opacity">
-                <ContraIcon />
+        <div className="relative z-10 h-full max-w-[1440px] mx-auto px-[120px] flex flex-col justify-between py-[100px]">
+          {/* Top: Links */}
+          <div className="flex gap-[100px]">
+            {/* Main Links */}
+            <div className="flex flex-col gap-[16px]">
+              <Link
+                href="https://docs.tryliquid.xyz/"
+                className="text-white text-[15.3px] font-medium tracking-[-0.64px] leading-[22.4px] hover:opacity-80 transition-opacity"
+              >
+                Docs
               </Link>
-              <Link href="#" className="text-white hover:opacity-80 transition-opacity">
-                <MediumIcon />
+              <Link
+                href="https://tryliquid.xyz/support"
+                className="text-white text-[15.3px] font-medium tracking-[-0.64px] leading-[22.4px] hover:opacity-80 transition-opacity"
+              >
+                Support
               </Link>
-              <Link href="https://x.com/liquidtrading" className="text-white hover:opacity-80 transition-opacity">
-                <XIcon />
+              <Link
+                href="#"
+                className="text-white text-[15.3px] font-medium tracking-[-0.64px] leading-[22.4px] hover:opacity-80 transition-opacity"
+              >
+                About
               </Link>
             </div>
+
+            {/* Legal Links */}
+            <div className="flex flex-col gap-[16px]">
+              <Link
+                href="https://tryliquid.xyz/termsofservice"
+                className="text-white text-[15.1px] font-medium tracking-[-0.64px] leading-[22.4px] hover:opacity-80 transition-opacity"
+              >
+                Terms of Service
+              </Link>
+              <Link
+                href="https://tryliquid.xyz/privacy"
+                className="text-white text-[15.1px] font-medium tracking-[-0.64px] leading-[22.4px] hover:opacity-80 transition-opacity"
+              >
+                Privacy Policy
+              </Link>
+              <Link
+                href="https://tryliquid.xyz/brand"
+                className="text-white text-[15.1px] font-medium tracking-[-0.64px] leading-[22.4px] hover:opacity-80 transition-opacity"
+              >
+                Brand Kit
+              </Link>
+            </div>
+          </div>
+
+          {/* Bottom: Social Icons */}
+          <div className="flex items-end gap-6">
+            <Link href="#" className="text-white hover:opacity-80 transition-opacity">
+              <ContraIcon />
+            </Link>
+            <Link href="#" className="text-white hover:opacity-80 transition-opacity">
+              <MediumIcon />
+            </Link>
+            <Link href="https://x.com/liquidtrading" className="text-white hover:opacity-80 transition-opacity">
+              <XIcon />
+            </Link>
           </div>
         </div>
       </footer>
