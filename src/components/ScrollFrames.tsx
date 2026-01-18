@@ -18,35 +18,36 @@ export default function ScrollFrames({
   backgroundColor = "#FFFFFF",
 }: ScrollFramesProps) {
   const [currentFrame, setCurrentFrame] = useState(1);
+  const [imagesLoaded, setImagesLoaded] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
-  const imageRef = useRef<HTMLImageElement>(null);
+  const imagesRef = useRef<HTMLImageElement[]>([]);
 
-  const frameNum = String(Math.max(1, Math.min(currentFrame, frameCount))).padStart(4, "0");
-  const imageSrc = `${basePath}${frameNum}.jpg`;
-
+  // Preload all images
   useEffect(() => {
-    // Preload first 10 frames
-    for (let i = 1; i <= Math.min(10, frameCount); i++) {
+    let loadedCount = 0;
+    imagesRef.current = [];
+
+    for (let i = 1; i <= frameCount; i++) {
       const img = new Image();
       img.src = `${basePath}${String(i).padStart(4, "0")}.jpg`;
+      img.onload = () => {
+        loadedCount++;
+        if (loadedCount >= frameCount * 0.5) { // Start when 50% loaded
+          setImagesLoaded(true);
+        }
+      };
+      imagesRef.current.push(img);
     }
-    // Preload rest in background
-    setTimeout(() => {
-      for (let i = 11; i <= frameCount; i++) {
-        const img = new Image();
-        img.src = `${basePath}${String(i).padStart(4, "0")}.jpg`;
-      }
-    }, 100);
   }, [frameCount, basePath]);
 
   useEffect(() => {
     gsap.registerPlugin(ScrollTrigger);
 
-    if (!containerRef.current) return;
+    if (!containerRef.current || !imagesLoaded) return;
 
     let trigger: ScrollTrigger | null = null;
 
-    // Wait for DOM to be fully ready
+    // Small delay after images loaded
     const initTimeout = setTimeout(() => {
       if (!containerRef.current) return;
 
@@ -65,12 +66,7 @@ export default function ScrollFrames({
       });
 
       ScrollTrigger.refresh();
-    }, 300);
-
-    // Refresh again after images load
-    const refreshTimeout = setTimeout(() => {
-      ScrollTrigger.refresh();
-    }, 1500);
+    }, 100);
 
     // Refresh on window load
     const handleLoad = () => ScrollTrigger.refresh();
@@ -82,12 +78,29 @@ export default function ScrollFrames({
 
     return () => {
       clearTimeout(initTimeout);
-      clearTimeout(refreshTimeout);
       window.removeEventListener('load', handleLoad);
       window.removeEventListener('resize', handleResize);
       if (trigger) trigger.kill();
     };
-  }, [frameCount]);
+  }, [frameCount, imagesLoaded]);
+
+  // Draw current frame on canvas
+  const canvasRef = useRef<HTMLCanvasElement>(null);
+
+  useEffect(() => {
+    if (!canvasRef.current || !imagesRef.current[currentFrame - 1]) return;
+
+    const canvas = canvasRef.current;
+    const ctx = canvas.getContext('2d');
+    if (!ctx) return;
+
+    const img = imagesRef.current[currentFrame - 1];
+    if (img.complete && img.naturalWidth > 0) {
+      canvas.width = img.naturalWidth;
+      canvas.height = img.naturalHeight;
+      ctx.drawImage(img, 0, 0);
+    }
+  }, [currentFrame]);
 
   return (
     <div
@@ -112,10 +125,8 @@ export default function ScrollFrames({
           justifyContent: "center",
         }}
       >
-        <img
-          ref={imageRef}
-          src={imageSrc}
-          alt=""
+        <canvas
+          ref={canvasRef}
           style={{
             width: "100%",
             height: "100%",
