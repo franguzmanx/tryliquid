@@ -46,6 +46,11 @@ export default function ScrollFrames({
   useEffect(() => {
     if (!containerRef.current) return;
 
+    // Delay to ensure DOM is ready after hydration
+    const timeout = setTimeout(() => {
+      ScrollTrigger.refresh();
+    }, 100);
+
     const trigger = ScrollTrigger.create({
       trigger: containerRef.current,
       start: "top top",
@@ -59,7 +64,14 @@ export default function ScrollFrames({
       },
     });
 
+    // Refresh after images might have loaded
+    const refreshTimeout = setTimeout(() => {
+      ScrollTrigger.refresh();
+    }, 1000);
+
     return () => {
+      clearTimeout(timeout);
+      clearTimeout(refreshTimeout);
       trigger.kill();
     };
   }, [frameCount]);

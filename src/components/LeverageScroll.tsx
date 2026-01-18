@@ -46,6 +46,11 @@ export default function LeverageScroll({
   useEffect(() => {
     if (!containerRef.current) return;
 
+    // Delay to ensure DOM is ready after hydration
+    const timeout = setTimeout(() => {
+      ScrollTrigger.refresh();
+    }, 100);
+
     const trigger = ScrollTrigger.create({
       trigger: containerRef.current,
       start: "top top",
@@ -60,7 +65,14 @@ export default function LeverageScroll({
       },
     });
 
+    // Refresh after content might have loaded
+    const refreshTimeout = setTimeout(() => {
+      ScrollTrigger.refresh();
+    }, 1000);
+
     return () => {
+      clearTimeout(timeout);
+      clearTimeout(refreshTimeout);
       trigger.kill();
     };
   }, [baseAmount, maxAmount, minLeverage, maxLeverage, currencySymbol]);
