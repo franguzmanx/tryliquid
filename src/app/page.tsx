@@ -294,7 +294,7 @@ export default function Home() {
         {/* Content */}
         <div className="relative z-10 h-full max-w-[1440px] mx-auto px-[35px] flex flex-col">
           {/* Main Title - Centered vertically, pushed down */}
-          <div className="flex-1 flex items-center pt-[15vh]">
+          <div className="flex-1 flex items-center pt-[10vh]">
             <div>
               <SplitTextHeading
                 className="text-white text-[94px] font-normal leading-[103px] tracking-[-0.06em]"
@@ -311,7 +311,7 @@ export default function Home() {
           </div>
 
           {/* Bottom Content */}
-          <div className="flex items-end justify-between pb-[60px]">
+          <div className="flex items-end justify-between pb-[145px]">
             <AnimatedDescription className="text-white/95 text-[18px] font-normal leading-[25px] max-w-[380px]" immediate>
               Trade from anywhere and multiply your returns by up to 150x.
             </AnimatedDescription>
