@@ -293,11 +293,11 @@ export default function Home() {
       <header className="relative h-[100vh] min-h-[900px] bg-black overflow-hidden">
         {/* Content */}
         <div className="relative z-10 h-full max-w-[1440px] mx-auto px-[35px] flex flex-col">
-          {/* Main Title - Centered vertically */}
-          <div className="flex-1 flex items-center">
+          {/* Main Title - Centered vertically, pushed down */}
+          <div className="flex-1 flex items-center pt-[15vh]">
             <div>
               <SplitTextHeading
-                className="text-white text-[94px] font-normal leading-[103px] tracking-[-0.04em]"
+                className="text-white text-[94px] font-normal leading-[103px] tracking-[-0.06em]"
               >
                 Leverage
               </SplitTextHeading>
