@@ -9,6 +9,8 @@ interface ScrollFramesProps {
   frameCount: number;
   scrollHeight?: number;
   backgroundColor?: string;
+  children?: React.ReactNode;
+  onProgress?: (progress: number) => void;
 }
 
 export default function ScrollFrames({
@@ -16,6 +18,8 @@ export default function ScrollFrames({
   frameCount,
   scrollHeight = 300,
   backgroundColor = "#FFFFFF",
+  children,
+  onProgress,
 }: ScrollFramesProps) {
   const [currentFrame, setCurrentFrame] = useState(1);
   const [imagesLoaded, setImagesLoaded] = useState(false);
@@ -62,6 +66,7 @@ export default function ScrollFrames({
           if (!isNaN(frame) && frame >= 1 && frame <= frameCount) {
             setCurrentFrame(frame);
           }
+          onProgress?.(self.progress);
         },
       });
 
@@ -133,6 +138,21 @@ export default function ScrollFrames({
             objectFit: "cover",
           }}
         />
+        {/* Overlay content */}
+        {children && (
+          <div
+            style={{
+              position: "absolute",
+              inset: 0,
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              pointerEvents: "none",
+            }}
+          >
+            {children}
+          </div>
+        )}
       </div>
     </div>
   );

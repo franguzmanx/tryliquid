@@ -5,10 +5,11 @@ import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
 import gsap from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
+import Lenis from "lenis";
 import { ProgressiveBlur } from "@/components/motion-primitives/progressive-blur";
 import ScrollFrames from "@/components/ScrollFrames";
-import LeverageScroll from "@/components/LeverageScroll";
 import UnicornScene from "unicornstudio-react";
+import NumberFlow from "@number-flow/react";
 
 // Register GSAP plugins
 if (typeof window !== "undefined") {
@@ -70,9 +71,10 @@ const GlowButton = ({ children, className = "", dark = false }: { children: Reac
     if (buttonRef.current) {
       gsap.to(buttonRef.current, {
         boxShadow: dark
-          ? "0 0 20px rgba(0,0,0,0.4), 0 0 40px rgba(0,0,0,0.2)"
-          : "0 0 20px rgba(255,255,255,0.6), 0 0 40px rgba(255,255,255,0.3)",
-        duration: 0.05,
+          ? "0 0 25px rgba(0,0,0,0.5), 0 0 50px rgba(0,0,0,0.25)"
+          : "0 0 25px rgba(255,255,255,0.7), 0 0 50px rgba(255,255,255,0.35)",
+        scale: 1.02,
+        duration: 0.4,
         ease: "power2.out"
       });
     }
@@ -82,7 +84,8 @@ const GlowButton = ({ children, className = "", dark = false }: { children: Reac
     if (buttonRef.current) {
       gsap.to(buttonRef.current, {
         boxShadow: "0 0 0px rgba(255,255,255,0), 0 0 0px rgba(255,255,255,0)",
-        duration: 0.05,
+        scale: 1,
+        duration: 0.4,
         ease: "power2.out"
       });
     }
@@ -94,59 +97,101 @@ const GlowButton = ({ children, className = "", dark = false }: { children: Reac
       href="#"
       onMouseEnter={handleMouseEnter}
       onMouseLeave={handleMouseLeave}
-      className={`${dark ? "bg-[#141414] text-white" : "bg-[#f2f2f2] text-[#141414]"} px-7 py-3 rounded-full text-[14px] font-medium tracking-[-0.56px] transition-colors duration-300 ease-in-out ${className}`}
+      className={`${dark ? "bg-[#141414] text-white" : "bg-[#f2f2f2] text-[#141414]"} px-7 py-3 rounded-full text-[15px] font-medium tracking-[-0.64px] transition-colors duration-300 ease-in-out ${className}`}
     >
       {children}
     </Link>
   );
 };
 
-// Split text into chars for animation
-const SplitTextHeading = ({ children, className = "", delay = 0 }: { children: string; className?: string; delay?: number }) => {
+// Split text into chars for animation - text mask reveal from bottom
+const SplitTextHeading = ({
+  children,
+  className = "",
+  delay = 0,
+  dimAfter = false,
+  glowAfter = false
+}: {
+  children: string;
+  className?: string;
+  delay?: number;
+  dimAfter?: boolean;
+  glowAfter?: boolean;
+}) => {
   const containerRef = useRef<HTMLDivElement>(null);
   const charsRef = useRef<HTMLSpanElement[]>([]);
 
   useEffect(() => {
     if (!containerRef.current || charsRef.current.length === 0) return;
 
-    gsap.fromTo(
+    const tl = gsap.timeline({
+      scrollTrigger: {
+        trigger: containerRef.current,
+        start: "top 85%",
+        toggleActions: "play none none none"
+      }
+    });
+
+    // Initial reveal animation
+    tl.fromTo(
       charsRef.current,
+      { yPercent: 100 },
       {
-        opacity: 0,
-        y: 50,
-        rotateX: -90
-      },
-      {
-        opacity: 1,
-        y: 0,
-        rotateX: 0,
-        duration: 0.6,
-        stagger: 0.02,
-        ease: "back.out(1.7)",
-        delay,
-        scrollTrigger: {
-          trigger: containerRef.current,
-          start: "top 85%",
-          toggleActions: "play none none none"
-        }
+        yPercent: 0,
+        duration: 0.8,
+        stagger: 0.03,
+        ease: "power3.out",
+        delay
       }
     );
-  }, [delay]);
+
+    // After animation effects
+    if (dimAfter) {
+      tl.to(containerRef.current, {
+        opacity: 0.5,
+        duration: 0.6,
+        ease: "power2.out"
+      }, "+=0.3");
+    }
+
+    if (glowAfter) {
+      // Use filter drop-shadow for glow (doesn't get clipped)
+      tl.to(containerRef.current, {
+        filter: "drop-shadow(0 0 20px rgba(255,255,255,0.7)) drop-shadow(0 0 40px rgba(255,255,255,0.4))",
+        duration: 0.6,
+        ease: "power2.out"
+      }, "+=0.3");
+
+      // Start pulsating glow loop
+      tl.add(() => {
+        gsap.to(containerRef.current, {
+          filter: "drop-shadow(0 0 30px rgba(255,255,255,0.9)) drop-shadow(0 0 60px rgba(255,255,255,0.5))",
+          duration: 2,
+          ease: "sine.inOut",
+          repeat: -1,
+          yoyo: true
+        });
+      });
+    }
+  }, [delay, dimAfter, glowAfter]);
 
   const chars = children.split("");
 
   return (
-    <div ref={containerRef} className={className} style={{ perspective: "1000px" }}>
+    <div ref={containerRef} className={className}>
       {chars.map((char, index) => (
         <span
           key={index}
-          ref={(el) => {
-            if (el) charsRef.current[index] = el;
-          }}
-          className="inline-block"
-          style={{ transformStyle: "preserve-3d" }}
+          className="inline-block overflow-hidden py-[0.1em] -my-[0.1em] px-[0.05em] -mx-[0.05em]"
         >
-          {char === " " ? "\u00A0" : char}
+          <span
+            ref={(el) => {
+              if (el) charsRef.current[index] = el;
+            }}
+            className="inline-block"
+          >
+            {char === " " ? "\u00A0" : char}
+          </span>
         </span>
       ))}
     </div>
@@ -209,12 +254,166 @@ const AnimatedDescription = ({ children, className = "", immediate = false }: { 
   );
 };
 
+// Leverage Text Overlay Component
+const LeverageTextOverlay = ({ progress }: { progress: number }) => {
+  const baseAmount = 100;
+  const maxAmount = 5000;
+  const amount = Math.round(baseAmount + progress * (maxAmount - baseAmount));
+
+  // Fade in with blur during early scroll progress (0 to 0.15)
+  const fadeProgress = Math.min(1, progress / 0.15);
+  const containerOpacity = fadeProgress;
+  const blur = 20 * (1 - fadeProgress);
+
+  // Opacity swap: starts after fade-in (0.15), completes at ~$1000 mark (0.25)
+  // Top text: 100% -> 50%, Bottom text: 50% -> 100%
+  const swapProgress = Math.max(0, Math.min(1, (progress - 0.15) / 0.10));
+  const topOpacity = 1 - (swapProgress * 0.5); // 1 -> 0.5
+  const bottomOpacity = 0.5 + (swapProgress * 0.5); // 0.5 -> 1
+
+  return (
+    <div
+      className="flex flex-col items-center gap-2 pb-[35vh]"
+      style={{
+        opacity: containerOpacity,
+        filter: `blur(${blur}px)`,
+        transition: "opacity 0.1s ease-out, filter 0.1s ease-out"
+      }}
+    >
+      <div
+        className="text-[77px] leading-[1.06] font-medium tracking-[-0.02em] text-center text-black"
+        style={{ opacity: topOpacity, transition: "opacity 0.15s ease-out" }}
+      >
+        With leverage,
+      </div>
+      <div
+        className="text-[77px] leading-[1.06] tracking-[-0.02em] whitespace-nowrap text-black flex items-baseline justify-center"
+        style={{ opacity: bottomOpacity, transition: "opacity 0.15s ease-out" }}
+      >
+        <span className="font-normal">Your </span>
+        <span className="font-medium">$100</span>
+        <span className="font-normal"> becomes</span>
+        <span className="font-medium w-[200px] ml-[0.25em]">
+          <NumberFlow
+            value={amount}
+            format={{ style: "currency", currency: "USD", maximumFractionDigits: 0 }}
+          />
+        </span>
+      </div>
+    </div>
+  );
+};
+
+// Feature Card Component - progress-based animation
+const FeatureCard = ({
+  icon,
+  title,
+  description,
+  side,
+  progress,
+  showAt
+}: {
+  icon: React.ReactNode;
+  title: string;
+  description: string;
+  side: "left" | "right";
+  progress: number;
+  showAt: number; // 0-1, when this card should start appearing
+}) => {
+  // Calculate card-specific progress (0 to 1 for this card's animation)
+  const cardProgress = Math.max(0, Math.min(1, (progress - showAt) / 0.15));
+  const opacity = cardProgress;
+  const blur = 20 * (1 - cardProgress);
+  const x = (side === "left" ? -40 : 40) * (1 - cardProgress);
+
+  return (
+    <div
+      className="max-w-[320px] p-6"
+      style={{
+        opacity,
+        filter: `blur(${blur}px)`,
+        transform: `translateX(${x}px)`
+      }}
+    >
+      <div className="text-black/40 mb-4">{icon}</div>
+      <p className="text-black text-[15px] leading-[22px]">
+        <span className="font-medium">{title}</span>{" "}
+        <span className="text-black/50">{description}</span>
+      </p>
+    </div>
+  );
+};
+
+// Feature Icons
+const TradeIcon = () => (
+  <svg viewBox="0 0 24 24" className="w-6 h-6" fill="none" stroke="currentColor" strokeWidth="1.5">
+    <path d="M3 13h18M3 13l4-4M3 13l4 4M21 11l-4-4M21 11l-4 4" strokeLinecap="round" strokeLinejoin="round"/>
+  </svg>
+);
+
+const ChartIcon = () => (
+  <svg viewBox="0 0 24 24" className="w-6 h-6" fill="none" stroke="currentColor" strokeWidth="1.5">
+    <path d="M3 3v18h18M7 14l4-4 4 4 5-5" strokeLinecap="round" strokeLinejoin="round"/>
+  </svg>
+);
+
+const ShieldIcon = () => (
+  <svg viewBox="0 0 24 24" className="w-6 h-6" fill="none" stroke="currentColor" strokeWidth="1.5">
+    <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" strokeLinecap="round" strokeLinejoin="round"/>
+  </svg>
+);
+
+const WalletIcon = () => (
+  <svg viewBox="0 0 24 24" className="w-6 h-6" fill="none" stroke="currentColor" strokeWidth="1.5">
+    <path d="M21 12V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2h14a2 2 0 002-2v-5zm-8 1a1 1 0 100-2 1 1 0 000 2z" strokeLinecap="round" strokeLinejoin="round"/>
+  </svg>
+);
+
 export default function Home() {
   const [isLightSection, setIsLightSection] = useState(false);
+  const [leverageProgress, setLeverageProgress] = useState(0);
+  const [glassProgress, setGlassProgress] = useState(0);
   const navRef = useRef<HTMLElement>(null);
+  const heroUnicornRef = useRef<HTMLDivElement>(null);
   const lightSectionRef = useRef<HTMLDivElement>(null);
+  const glassSectionRef = useRef<HTMLElement>(null);
+  const tradingUIRef = useRef<HTMLDivElement>(null);
+  const footerContentRef = useRef<HTMLDivElement>(null);
+  const footerUnicornRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
+    // Initialize Lenis smooth scrolling
+    const lenis = new Lenis({
+      duration: 1.2,
+      easing: (t) => Math.min(1, 1.001 - Math.pow(2, -10 * t)),
+      orientation: 'vertical',
+      gestureOrientation: 'vertical',
+      smoothWheel: true,
+    });
+
+    // Connect Lenis to GSAP ScrollTrigger
+    lenis.on('scroll', ScrollTrigger.update);
+
+    gsap.ticker.add((time) => {
+      lenis.raf(time * 1000);
+    });
+
+    gsap.ticker.lagSmoothing(0);
+
+    // Hero Unicorn fade-in animation
+    if (heroUnicornRef.current) {
+      gsap.fromTo(
+        heroUnicornRef.current,
+        { opacity: 0 },
+        {
+          opacity: 1,
+          duration: 1.5,
+          delay: 0.2,
+          ease: "power2.out"
+        }
+      );
+    }
+
     // Navbar slide-in animation
     if (navRef.current) {
       gsap.fromTo(
@@ -242,7 +441,100 @@ export default function Home() {
       });
     }
 
+    // Trading UI 3D tilt animation
+    if (tradingUIRef.current) {
+      gsap.fromTo(
+        tradingUIRef.current,
+        {
+          rotateX: 25,
+          opacity: 0.3,
+          filter: "blur(10px)",
+          scale: 0.95
+        },
+        {
+          rotateX: 0,
+          opacity: 1,
+          filter: "blur(0px)",
+          scale: 1,
+          ease: "power2.out",
+          scrollTrigger: {
+            trigger: tradingUIRef.current,
+            start: "top 90%",
+            end: "top 30%",
+            scrub: 1
+          }
+        }
+      );
+    }
+
+    // Glass section fade-in animation
+    if (glassSectionRef.current) {
+      gsap.fromTo(
+        glassSectionRef.current,
+        {
+          opacity: 0
+        },
+        {
+          opacity: 1,
+          duration: 1,
+          ease: "power2.out",
+          scrollTrigger: {
+            trigger: glassSectionRef.current,
+            start: "top 80%",
+            toggleActions: "play none none none"
+          }
+        }
+      );
+    }
+
+    // Footer cascading blur animation
+    if (footerContentRef.current) {
+      const footerElements = footerContentRef.current.querySelectorAll('.footer-animate');
+      gsap.fromTo(
+        footerElements,
+        {
+          opacity: 0,
+          filter: "blur(15px)",
+          y: 20
+        },
+        {
+          opacity: 1,
+          filter: "blur(0px)",
+          y: 0,
+          duration: 0.8,
+          stagger: 0.1,
+          ease: "power2.out",
+          scrollTrigger: {
+            trigger: footerContentRef.current,
+            start: "top 85%",
+            toggleActions: "play none none none"
+          }
+        }
+      );
+    }
+
+    // Footer Unicorn scene fade-in animation
+    if (footerUnicornRef.current) {
+      gsap.fromTo(
+        footerUnicornRef.current,
+        {
+          opacity: 0
+        },
+        {
+          opacity: 1,
+          duration: 1.2,
+          ease: "power2.out",
+          scrollTrigger: {
+            trigger: footerUnicornRef.current,
+            start: "top 90%",
+            toggleActions: "play none none none"
+          }
+        }
+      );
+    }
+
     return () => {
+      lenis.destroy();
       ScrollTrigger.getAll().forEach(t => t.kill());
     };
   }, []);
@@ -270,17 +562,22 @@ export default function Home() {
 
           {/* Nav Links */}
           <div className="hidden md:flex items-center gap-8">
-            {['Company', 'Resources', 'Pricing', 'Contact'].map((item) => (
-              <Link
-                key={item}
-                href="#"
-                className={`text-[14px] tracking-[-0.56px] font-normal hover:opacity-80 transition-all duration-300 ease-in-out ${
-                  isLightSection ? "text-black" : "text-white"
-                }`}
-              >
-                {item}
-              </Link>
-            ))}
+            <Link
+              href="https://docs.tryliquid.xyz/"
+              className={`text-[15px] tracking-[-0.64px] font-medium opacity-50 hover:opacity-100 transition-all duration-300 ease-in-out ${
+                isLightSection ? "text-black" : "text-white"
+              }`}
+            >
+              Documentation
+            </Link>
+            <Link
+              href="https://tryliquid.xyz/support"
+              className={`text-[15px] tracking-[-0.64px] font-medium opacity-50 hover:opacity-100 transition-all duration-300 ease-in-out ${
+                isLightSection ? "text-black" : "text-white"
+              }`}
+            >
+              Support
+            </Link>
           </div>
 
           {/* CTA Button */}
@@ -293,7 +590,7 @@ export default function Home() {
       {/* Hero Section */}
       <header className="relative h-[100vh] min-h-[900px] bg-black overflow-hidden">
         {/* Unicorn Studio Background */}
-        <div className="absolute inset-0 z-0 w-full h-full">
+        <div ref={heroUnicornRef} className="absolute inset-0 z-0 w-full h-full" style={{ opacity: 0 }}>
           <UnicornScene
             projectId="5ZnTqqnrUWtHurlAQ3qH?production=true"
             scale={1}
@@ -308,12 +605,14 @@ export default function Home() {
             <div>
               <SplitTextHeading
                 className="text-white text-[94px] font-normal leading-[103px] tracking-[-0.06em]"
+                dimAfter
               >
                 Leverage
               </SplitTextHeading>
               <SplitTextHeading
                 className="text-white text-[94px] font-normal leading-[103px] tracking-[-0.04em]"
                 delay={0.1}
+                glowAfter
               >
                 Everything
               </SplitTextHeading>
@@ -334,6 +633,9 @@ export default function Home() {
 
       {/* Cut the Noise / Stay Liquid Section */}
       <section className="relative h-[900px] bg-black overflow-hidden">
+        {/* Gradient mask top: black to transparent */}
+        <div className="absolute top-0 left-0 right-0 h-[200px] bg-gradient-to-b from-black to-transparent pointer-events-none z-10" />
+
         {/* Unicorn Studio Background */}
         <div className="absolute inset-0 z-0 w-full h-full">
           <div data-us-project="qo3w02bVxl3QFyjkSWtn" className="w-full h-full" />
@@ -367,7 +669,7 @@ export default function Home() {
 
       {/* White Sections Container */}
       <div ref={lightSectionRef}>
-        {/* Water Drop Animation - White Background */}
+        {/* Water Drop Animation with Leverage Text - White Background */}
         <section className="relative bg-white">
           {/* Gradient mask top: gray to transparent */}
           <div className="absolute top-0 left-0 right-0 h-[200px] bg-gradient-to-b from-[#F1F4F2] to-transparent pointer-events-none z-20" />
@@ -376,30 +678,69 @@ export default function Home() {
             frameCount={176}
             scrollHeight={300}
             backgroundColor="#FFFFFF"
-          />
+            onProgress={setLeverageProgress}
+          >
+            <LeverageTextOverlay progress={leverageProgress} />
+          </ScrollFrames>
           {/* Gradient mask bottom: white to transparent */}
           <div className="absolute bottom-0 left-0 right-0 h-[200px] bg-gradient-to-t from-white to-transparent pointer-events-none z-20" />
         </section>
 
-        {/* Phone/Glass Animation - White Background */}
+        {/* Phone/Glass Animation with Feature Cards - White Background */}
         <section className="relative bg-white">
           {/* Gradient mask top */}
           <div className="absolute top-0 left-0 right-0 h-[200px] bg-gradient-to-b from-white to-transparent pointer-events-none z-20" />
+
           <ScrollFrames
             basePath="/frames_glass/frame_"
             frameCount={301}
             scrollHeight={400}
             backgroundColor="#FFFFFF"
-          />
-        </section>
+            onProgress={setGlassProgress}
+          >
+            {/* Feature Cards Overlay */}
+            <div className="w-full h-full flex items-center justify-between px-8 lg:px-16">
+              {/* Left Side Cards */}
+              <div className="flex flex-col gap-8">
+                <FeatureCard
+                  icon={<TradeIcon />}
+                  title="Instant Trading."
+                  description="Execute trades in milliseconds with zero slippage on any asset pair."
+                  side="left"
+                  progress={glassProgress}
+                  showAt={0.1}
+                />
+                <FeatureCard
+                  icon={<ShieldIcon />}
+                  title="Secure Custody."
+                  description="Your assets are protected with institutional-grade security protocols."
+                  side="left"
+                  progress={glassProgress}
+                  showAt={0.35}
+                />
+              </div>
 
-        {/* Leverage Text Animation - White Background */}
-        <section className="relative bg-white">
-          {/* Gradient mask top */}
-          <div className="absolute top-0 left-0 right-0 h-[200px] bg-gradient-to-b from-white to-transparent pointer-events-none z-20" />
-          <LeverageScroll scrollHeight={300} backgroundColor="#FFFFFF" />
-          {/* Gradient mask bottom */}
-          <div className="absolute bottom-0 left-0 right-0 h-[200px] bg-gradient-to-t from-white to-transparent pointer-events-none z-20" />
+              {/* Right Side Cards */}
+              <div className="flex flex-col gap-8">
+                <FeatureCard
+                  icon={<ChartIcon />}
+                  title="Advanced Analytics."
+                  description="Real-time charts and insights to make informed trading decisions."
+                  side="right"
+                  progress={glassProgress}
+                  showAt={0.5}
+                />
+                <FeatureCard
+                  icon={<WalletIcon />}
+                  title="Multi-Chain Support."
+                  description="Trade across multiple blockchains from a single unified interface."
+                  side="right"
+                  progress={glassProgress}
+                  showAt={0.7}
+                />
+              </div>
+            </div>
+          </ScrollFrames>
         </section>
 
         {/* White section above Earn While You Trade */}
@@ -438,24 +779,40 @@ export default function Home() {
             </SplitTextHeading>
           </div>
 
+          {/* Description and CTA */}
+          <div className="flex flex-col items-center mt-8">
+            <AnimatedDescription className="text-white/60 text-[18px] font-normal leading-[28px] max-w-[520px] text-center">
+              Earn yield on your collateral while maintaining full trading power. Your assets work for you, even when you&apos;re not actively trading.
+            </AnimatedDescription>
+            <div className="mt-8">
+              <GlowButton>
+                Launch App
+              </GlowButton>
+            </div>
+          </div>
+
           {/* Trading UI Image */}
-          <div className="relative mt-[155px] mx-auto max-w-[1050px] h-[675px]">
-            <div className="absolute inset-0 rounded-[20px] overflow-hidden border border-neutral-800">
+          <div className="relative mt-[60px] mx-auto max-w-[1050px] h-[675px]" style={{ perspective: "1200px" }}>
+            <div
+              ref={tradingUIRef}
+              className="absolute inset-0 rounded-[20px] overflow-hidden border border-neutral-800"
+              style={{ transformStyle: "preserve-3d", transformOrigin: "center bottom" }}
+            >
               <Image
                 src="/images/trading-ui.png"
                 alt="Trading Interface"
                 fill
                 className="object-cover mix-blend-screen"
               />
+              {/* Top border with rounded corners - on top of gray */}
+              <div className="absolute inset-0 rounded-[20px] pointer-events-none z-20" style={{
+                background: 'linear-gradient(to bottom, rgba(255,255,255,0.6) 0%, transparent 3%, transparent 97%, rgba(255,255,255,0.6) 100%)',
+                WebkitMask: 'linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0)',
+                WebkitMaskComposite: 'xor',
+                maskComposite: 'exclude',
+                padding: '1px'
+              }} />
             </div>
-            {/* Top border with rounded corners - on top of gray */}
-            <div className="absolute inset-0 rounded-[20px] pointer-events-none z-20" style={{
-              background: 'linear-gradient(to bottom, rgba(255,255,255,0.6) 0%, transparent 3%, transparent 97%, rgba(255,255,255,0.6) 100%)',
-              WebkitMask: 'linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0)',
-              WebkitMaskComposite: 'xor',
-              maskComposite: 'exclude',
-              padding: '1px'
-            }} />
           </div>
         </div>
       </section>
@@ -463,27 +820,32 @@ export default function Home() {
       {/* Footer */}
       <footer className="relative bg-black overflow-hidden flex flex-col">
         {/* Top - Content */}
-        <div className="max-w-[1440px] mx-auto px-[120px] pt-[100px] pb-[50px] w-full">
+        <div ref={footerContentRef} className="max-w-[1440px] mx-auto px-[120px] pt-[100px] pb-[50px] w-full">
           <div className="flex justify-between">
-            {/* Links */}
+            {/* Logo and Links */}
             <div className="flex gap-[100px]">
+              {/* Logo */}
+              <div className="footer-animate">
+                <LiquidLogo />
+              </div>
+
               {/* Main Links */}
               <div className="flex flex-col gap-[16px]">
                 <Link
                   href="https://docs.tryliquid.xyz/"
-                  className="text-white text-[15.3px] font-medium tracking-[-0.64px] leading-[22.4px] hover:opacity-80 transition-opacity"
+                  className="footer-animate text-white text-[15.3px] font-medium tracking-[-0.64px] leading-[22.4px] hover:opacity-80 transition-opacity"
                 >
                   Docs
                 </Link>
                 <Link
                   href="https://tryliquid.xyz/support"
-                  className="text-white text-[15.3px] font-medium tracking-[-0.64px] leading-[22.4px] hover:opacity-80 transition-opacity"
+                  className="footer-animate text-white text-[15.3px] font-medium tracking-[-0.64px] leading-[22.4px] hover:opacity-80 transition-opacity"
                 >
                   Support
                 </Link>
                 <Link
                   href="#"
-                  className="text-white text-[15.3px] font-medium tracking-[-0.64px] leading-[22.4px] hover:opacity-80 transition-opacity"
+                  className="footer-animate text-white text-[15.3px] font-medium tracking-[-0.64px] leading-[22.4px] hover:opacity-80 transition-opacity"
                 >
                   About
                 </Link>
@@ -493,19 +855,19 @@ export default function Home() {
               <div className="flex flex-col gap-[16px]">
                 <Link
                   href="https://tryliquid.xyz/termsofservice"
-                  className="text-white text-[15.1px] font-medium tracking-[-0.64px] leading-[22.4px] hover:opacity-80 transition-opacity"
+                  className="footer-animate text-white text-[15.1px] font-medium tracking-[-0.64px] leading-[22.4px] hover:opacity-80 transition-opacity"
                 >
                   Terms of Service
                 </Link>
                 <Link
                   href="https://tryliquid.xyz/privacy"
-                  className="text-white text-[15.1px] font-medium tracking-[-0.64px] leading-[22.4px] hover:opacity-80 transition-opacity"
+                  className="footer-animate text-white text-[15.1px] font-medium tracking-[-0.64px] leading-[22.4px] hover:opacity-80 transition-opacity"
                 >
                   Privacy Policy
                 </Link>
                 <Link
                   href="https://tryliquid.xyz/brand"
-                  className="text-white text-[15.1px] font-medium tracking-[-0.64px] leading-[22.4px] hover:opacity-80 transition-opacity"
+                  className="footer-animate text-white text-[15.1px] font-medium tracking-[-0.64px] leading-[22.4px] hover:opacity-80 transition-opacity"
                 >
                   Brand Kit
                 </Link>
@@ -514,13 +876,13 @@ export default function Home() {
 
             {/* Social Icons */}
             <div className="flex items-start gap-6 pt-[78px]">
-              <Link href="#" className="text-white hover:opacity-80 transition-opacity">
+              <Link href="#" className="footer-animate text-white hover:opacity-80 transition-opacity">
                 <ContraIcon />
               </Link>
-              <Link href="#" className="text-white hover:opacity-80 transition-opacity">
+              <Link href="#" className="footer-animate text-white hover:opacity-80 transition-opacity">
                 <MediumIcon />
               </Link>
-              <Link href="https://x.com/liquidtrading" className="text-white hover:opacity-80 transition-opacity">
+              <Link href="https://x.com/liquidtrading" className="footer-animate text-white hover:opacity-80 transition-opacity">
                 <XIcon />
               </Link>
             </div>
@@ -529,8 +891,10 @@ export default function Home() {
 
         {/* Bottom - Unicorn Studio Background with mask */}
         <div
+          ref={footerUnicornRef}
           className="relative w-full h-[712px]"
           style={{
+            opacity: 0,
             mask: 'linear-gradient(0deg, rgba(0, 0, 0, 0) 0%, rgb(0, 0, 0) 7.63%, rgb(0, 0, 0) 86.96%, rgba(0, 0, 0, 0) 97.38%)',
             WebkitMask: 'linear-gradient(0deg, rgba(0, 0, 0, 0) 0%, rgb(0, 0, 0) 7.63%, rgb(0, 0, 0) 86.96%, rgba(0, 0, 0, 0) 97.38%)'
           }}
