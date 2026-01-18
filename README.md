@@ -1,27 +1,27 @@
-# Scroll Video Animation - Guía Completa
+# Scroll Video Animation - Complete Guide
 
-Esta guía documenta el proceso completo para crear animaciones de video controladas por scroll, estilo Apple. Incluye versiones para web vanilla y componentes de Framer.
+This guide documents the complete process for creating Apple-style scroll-controlled video animations. It includes versions for vanilla web and Framer components.
 
 ---
 
-## Tabla de Contenidos
+## Table of Contents
 
-1. [Requisitos Previos](#requisitos-previos)
-2. [Extracción de Frames](#extracción-de-frames)
-3. [Versión Web Vanilla](#versión-web-vanilla)
-4. [Versión WebGL con Efectos](#versión-webgl-con-efectos)
-5. [Componente de Framer](#componente-de-framer)
-6. [Deployment a Vercel](#deployment-a-vercel)
-7. [Componente de Leverage Scroll](#componente-de-leverage-scroll)
+1. [Prerequisites](#prerequisites)
+2. [Frame Extraction](#frame-extraction)
+3. [Vanilla Web Version](#vanilla-web-version)
+4. [WebGL Version with Effects](#webgl-version-with-effects)
+5. [Framer Component](#framer-component)
+6. [Deployment to Vercel](#deployment-to-vercel)
+7. [Leverage Scroll Component](#leverage-scroll-component)
 8. [Troubleshooting](#troubleshooting)
 
 ---
 
-## Requisitos Previos
+## Prerequisites
 
-### Instalar FFmpeg
+### Install FFmpeg
 
-FFmpeg es necesario para extraer frames del video.
+FFmpeg is required to extract frames from video.
 
 ```bash
 # macOS
@@ -30,49 +30,49 @@ brew install ffmpeg
 # Ubuntu/Debian
 sudo apt install ffmpeg
 
-# Windows (con Chocolatey)
+# Windows (with Chocolatey)
 choco install ffmpeg
 ```
 
-### Estructura del Proyecto
+### Project Structure
 
 ```
-proyecto/
+project/
 ├── index.html
 ├── styles.css
 ├── script.js
-├── frames/           # Frames extraídos del video
+├── frames/           # Frames extracted from video
 │   ├── frame_0001.jpg
 │   ├── frame_0002.jpg
 │   └── ...
-├── Video.mp4         # Video original
+├── Video.mp4         # Original video
 └── README.md
 ```
 
 ---
 
-## Extracción de Frames
+## Frame Extraction
 
-### Comando básico
+### Basic command
 
 ```bash
-# Crear carpeta para frames
+# Create folder for frames
 mkdir -p frames
 
-# Extraer frames a 30fps con calidad alta
+# Extract frames at 30fps with high quality
 ffmpeg -i Video.mp4 -vf "fps=30" -q:v 2 frames/frame_%04d.jpg
 ```
 
-### Parámetros explicados
+### Parameters explained
 
-| Parámetro | Descripción |
+| Parameter | Description |
 |-----------|-------------|
-| `-i Video.mp4` | Video de entrada |
-| `-vf "fps=30"` | Extraer 30 frames por segundo |
-| `-q:v 2` | Calidad (1-31, menor = mejor) |
-| `frame_%04d.jpg` | Nombre con 4 dígitos (0001, 0002...) |
+| `-i Video.mp4` | Input video |
+| `-vf "fps=30"` | Extract 30 frames per second |
+| `-q:v 2` | Quality (1-31, lower = better) |
+| `frame_%04d.jpg` | Name with 4 digits (0001, 0002...) |
 
-### Contar frames extraídos
+### Count extracted frames
 
 ```bash
 ls frames/ | wc -l
@@ -80,7 +80,7 @@ ls frames/ | wc -l
 
 ---
 
-## Versión Web Vanilla
+## Vanilla Web Version
 
 ### index.html
 
@@ -117,14 +117,14 @@ html, body {
     overflow-x: hidden;
 }
 
-/* Altura controla velocidad de animación */
-/* Mayor = más lento, Menor = más rápido */
+/* Height controls animation speed */
+/* Higher = slower, Lower = faster */
 .scroll-container {
     height: 500vh;
     position: relative;
 }
 
-/* Mantiene el canvas fijo mientras scrolleas */
+/* Keeps the canvas fixed while scrolling */
 .sticky-wrapper {
     position: fixed;
     top: 0;
@@ -142,7 +142,7 @@ html, body {
     height: 100%;
 }
 
-/* Ocultar scrollbar */
+/* Hide scrollbar */
 body::-webkit-scrollbar {
     display: none;
 }
@@ -156,20 +156,20 @@ body {
 ### script.js
 
 ```javascript
-// Configuración - MODIFICAR SEGÚN TU VIDEO
+// Configuration - MODIFY ACCORDING TO YOUR VIDEO
 const CONFIG = {
-    frameCount: 176,              // Total de frames extraídos
-    framePath: 'frames/frame_',   // Ruta a los frames
-    frameExtension: '.jpg',       // Extensión de los frames
-    startFrame: 1                 // Número del primer frame
+    frameCount: 176,              // Total extracted frames
+    framePath: 'frames/frame_',   // Path to frames
+    frameExtension: '.jpg',       // Frame extension
+    startFrame: 1                 // First frame number
 };
 
-// Estado
+// State
 let frames = [];
 let canvas, ctx;
 let isLoaded = false;
 
-// Inicializar
+// Initialize
 function init() {
     canvas = document.getElementById('video-canvas');
     ctx = canvas.getContext('2d');
@@ -180,7 +180,7 @@ function init() {
     preloadFrames();
 }
 
-// Ajustar canvas al viewport
+// Adjust canvas to viewport
 function resizeCanvas() {
     canvas.width = window.innerWidth;
     canvas.height = window.innerHeight;
@@ -191,11 +191,11 @@ function resizeCanvas() {
     }
 }
 
-// Precargar todos los frames en memoria
+// Preload all frames into memory
 function preloadFrames() {
     let loadedCount = 0;
 
-    // Indicador de carga
+    // Loading indicator
     const loadingDiv = document.createElement('div');
     loadingDiv.className = 'loading-indicator';
     loadingDiv.textContent = 'Loading frames...';
@@ -240,21 +240,21 @@ function preloadFrames() {
     }
 }
 
-// Calcular progreso del scroll (0 a 1)
+// Calculate scroll progress (0 to 1)
 function getScrollProgress() {
     const scrollTop = window.scrollY;
     const maxScroll = document.documentElement.scrollHeight - window.innerHeight;
     return Math.min(Math.max(scrollTop / maxScroll, 0), 1);
 }
 
-// Manejar evento de scroll
+// Handle scroll event
 function onScroll() {
     if (!isLoaded) return;
     const progress = getScrollProgress();
     drawFrame(progress);
 }
 
-// Dibujar el frame correcto según el progreso
+// Draw the correct frame based on progress
 function drawFrame(progress) {
     const frameIndex = Math.min(
         Math.floor(progress * CONFIG.frameCount),
@@ -266,7 +266,7 @@ function drawFrame(progress) {
     if (img && img.complete) {
         ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-        // Escalar para cubrir (como background-size: cover)
+        // Scale to cover (like background-size: cover)
         const scale = Math.max(
             canvas.width / img.width,
             canvas.height / img.height
@@ -281,7 +281,7 @@ function drawFrame(progress) {
     }
 }
 
-// Iniciar cuando el DOM esté listo
+// Start when DOM is ready
 if (document.readyState === 'loading') {
     document.addEventListener('DOMContentLoaded', init);
 } else {
@@ -291,14 +291,14 @@ if (document.readyState === 'loading') {
 
 ---
 
-## Versión WebGL con Efectos
+## WebGL Version with Effects
 
-Esta versión usa WebGL para renderizar los frames y puede incluir efectos como ripple/distorsión.
+This version uses WebGL to render frames and can include effects like ripple/distortion.
 
 ### script.js (WebGL)
 
 ```javascript
-// Configuración
+// Configuration
 const CONFIG = {
     frameCount: 301,
     framePath: 'frames_glass/frame_',
@@ -306,7 +306,7 @@ const CONFIG = {
     startFrame: 1
 };
 
-// Estado
+// State
 let gl, program;
 let frames = [];
 let textures = [];
@@ -328,7 +328,7 @@ void main() {
     vTexCoord = aTexCoord;
 }`;
 
-// Shader sin efectos (solo video)
+// Shader without effects (video only)
 const fragmentShaderSource = `#version 300 es
 precision highp float;
 in vec2 vTexCoord;
@@ -342,7 +342,7 @@ void main() {
     fragColor = color;
 }`;
 
-// Shader con efecto ripple
+// Shader with ripple effect
 const fragmentShaderWithRipple = `#version 300 es
 precision highp float;
 in vec2 vTexCoord;
@@ -370,7 +370,7 @@ void main() {
         direction = vec2(0.0, 1.0);
     }
 
-    // Parámetros del ripple
+    // Ripple parameters
     float frequency = 0.19 * 50.0;
     float strength = 0.08 * 0.2;
     float easeDistValue = max(0.0, 1.0 - dist);
@@ -383,7 +383,7 @@ void main() {
     fragColor = color;
 }`;
 
-// Inicializar WebGL
+// Initialize WebGL
 function initWebGL() {
     const canvas = document.getElementById('webgl-canvas');
     gl = canvas.getContext('webgl2');
@@ -406,7 +406,7 @@ function initWebGL() {
         return false;
     }
 
-    // Geometría fullscreen
+    // Fullscreen geometry
     const positions = new Float32Array([
         -1, -1,  1, -1,  -1, 1,
         -1, 1,   1, -1,   1, 1
@@ -462,12 +462,12 @@ function createTexture(image) {
     return texture;
 }
 
-// ... resto de funciones igual que versión vanilla
+// ... remaining functions same as vanilla version
 ```
 
 ---
 
-## Componente de Framer
+## Framer Component
 
 ### ScrollVideo.tsx
 
@@ -476,7 +476,7 @@ import { useEffect, useState, useRef } from "react"
 import { addPropertyControls, ControlType } from "framer"
 
 const DEFAULT_FRAME_COUNT = 301
-const DEFAULT_BASE_PATH = "https://tu-dominio.com/frames/frame_"
+const DEFAULT_BASE_PATH = "https://your-domain.com/frames/frame_"
 const DEFAULT_SCROLL_HEIGHT = 500
 
 export default function ScrollVideo(props) {
@@ -492,7 +492,7 @@ export default function ScrollVideo(props) {
     const imageSrc = `${basePath}${frameNum}.jpg`
 
     useEffect(() => {
-        // Precargar frames
+        // Preload frames
         for (let i = 1; i <= Math.min(10, frameCount); i++) {
             const img = new Image()
             img.src = `${basePath}${String(i).padStart(4, "0")}.jpg`
@@ -574,8 +574,8 @@ addPropertyControls(ScrollVideo, {
     },
     basePath: {
         type: ControlType.String,
-        title: "URL Base",
-        defaultValue: "https://tu-dominio.com/frames/frame_",
+        title: "Base URL",
+        defaultValue: "https://your-domain.com/frames/frame_",
     },
     scrollHeight: {
         type: ControlType.Number,
@@ -589,35 +589,35 @@ addPropertyControls(ScrollVideo, {
 
 ---
 
-## Deployment a Vercel
+## Deployment to Vercel
 
-### Método rápido (CLI)
+### Quick method (CLI)
 
 ```bash
-# Instalar Vercel CLI si no lo tienes
+# Install Vercel CLI if you don't have it
 npm i -g vercel
 
-# Deployar
-cd tu-proyecto
+# Deploy
+cd your-project
 vercel --prod
 ```
 
-### Configuración importante
+### Important configuration
 
-1. **Deployment Protection**: Ir a Settings → Deployment Protection → Desactivar para producción (si quieres acceso público)
+1. **Deployment Protection**: Go to Settings → Deployment Protection → Disable for production (if you want public access)
 
-2. **Dominio**: El proyecto estará en `https://tu-proyecto.vercel.app`
+2. **Domain**: The project will be at `https://your-project.vercel.app`
 
-3. **Frames URL**: Tus frames estarán en:
+3. **Frames URL**: Your frames will be at:
    ```
-   https://tu-proyecto.vercel.app/frames/frame_0001.jpg
+   https://your-project.vercel.app/frames/frame_0001.jpg
    ```
 
 ---
 
-## Componente de Leverage Scroll
+## Leverage Scroll Component
 
-Este componente muestra números que cambian con el scroll (ej: $100 → $5,000).
+This component displays numbers that change with scroll (e.g., $100 → $5,000).
 
 ### leverage.html
 
@@ -706,44 +706,44 @@ Este componente muestra números que cambian con el scroll (ej: $100 → $5,000)
 
 ## Troubleshooting
 
-### El video no empieza desde el principio
+### Video doesn't start from the beginning
 
-- Asegúrate que el componente esté al inicio de la página
-- No debe haber contenido arriba del componente
-- Verifica que `startFrame` sea 1
+- Make sure the component is at the top of the page
+- There should be no content above the component
+- Verify that `startFrame` is 1
 
-### Los frames no cargan
+### Frames don't load
 
-- Verifica las rutas de los frames
-- Asegúrate que CORS esté habilitado si usas un CDN externo
-- Revisa la consola del navegador por errores
+- Verify the frame paths
+- Make sure CORS is enabled if using an external CDN
+- Check the browser console for errors
 
-### El scroll no funciona en Framer
+### Scroll doesn't work in Framer
 
-- El scroll **solo funciona en Preview**, no en el editor
-- Usa `position: sticky` en vez de `position: fixed` para Framer
+- Scroll **only works in Preview**, not in the editor
+- Use `position: sticky` instead of `position: fixed` for Framer
 
-### NaN en el número de frame
+### NaN in frame number
 
-- Asegúrate que los props tengan valores por defecto
-- Usa fallbacks: `props.frameCount || 301`
+- Make sure props have default values
+- Use fallbacks: `props.frameCount || 301`
 
-### Performance lenta
+### Slow performance
 
-- Reduce el número de frames (usar fps=24 en vez de 30)
-- Comprime los frames con menor calidad
-- Usa WebP en vez de JPG si el navegador lo soporta
+- Reduce the number of frames (use fps=24 instead of 30)
+- Compress frames with lower quality
+- Use WebP instead of JPG if the browser supports it
 
 ---
 
-## URLs de Ejemplo
+## Example URLs
 
-- **Demo Video Scroll**: https://filter-splash-xxx.vercel.app/
-- **Demo Leverage**: https://filter-splash-xxx.vercel.app/leverage.html
+- **Video Scroll Demo**: https://filter-splash-xxx.vercel.app/
+- **Leverage Demo**: https://filter-splash-xxx.vercel.app/leverage.html
 - **Frames**: https://filter-splash-xxx.vercel.app/frames_glass/frame_0001.jpg
 
 ---
 
-## Créditos
+## Credits
 
-Creado con Claude Code. Para más información o contribuciones, abrir un issue en el repositorio.
+Created with Claude Code. For more information or contributions, open an issue in the repository.
