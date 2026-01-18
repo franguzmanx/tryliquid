@@ -4,10 +4,6 @@ import { useEffect, useRef, useState } from "react";
 import gsap from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 
-if (typeof window !== "undefined") {
-  gsap.registerPlugin(ScrollTrigger);
-}
-
 function formatCurrency(n: number, currencySymbol = "$") {
   const rounded = Math.round(n);
   return (
@@ -44,6 +40,8 @@ export default function LeverageScroll({
   const titleMiddle = "becomes";
 
   useEffect(() => {
+    gsap.registerPlugin(ScrollTrigger);
+
     if (!containerRef.current) return;
 
     // Delay to ensure DOM is ready after hydration

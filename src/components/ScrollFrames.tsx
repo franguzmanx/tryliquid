@@ -4,10 +4,6 @@ import { useEffect, useRef, useState } from "react";
 import gsap from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 
-if (typeof window !== "undefined") {
-  gsap.registerPlugin(ScrollTrigger);
-}
-
 interface ScrollFramesProps {
   basePath: string;
   frameCount: number;
@@ -44,6 +40,8 @@ export default function ScrollFrames({
   }, [frameCount, basePath]);
 
   useEffect(() => {
+    gsap.registerPlugin(ScrollTrigger);
+
     if (!containerRef.current) return;
 
     // Delay to ensure DOM is ready after hydration
