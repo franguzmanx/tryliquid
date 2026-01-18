@@ -8,6 +8,7 @@ import { ScrollTrigger } from "gsap/ScrollTrigger";
 import { ProgressiveBlur } from "@/components/motion-primitives/progressive-blur";
 import ScrollFrames from "@/components/ScrollFrames";
 import LeverageScroll from "@/components/LeverageScroll";
+import UnicornScene from "unicornstudio-react";
 
 // Register GSAP plugins
 if (typeof window !== "undefined") {
@@ -291,6 +292,16 @@ export default function Home() {
 
       {/* Hero Section */}
       <header className="relative h-[100vh] min-h-[900px] bg-black overflow-hidden">
+        {/* Unicorn Studio Background */}
+        <div className="absolute inset-0 z-0">
+          <UnicornScene
+            projectId="5ZnTqqnrUWtHurlAQ3qH?production=true"
+            style={{ width: "100%", height: "100%" }}
+            scale={1}
+            dpi={1.5}
+            lazyLoad={false}
+          />
+        </div>
         {/* Content */}
         <div className="relative z-10 h-full max-w-[1440px] mx-auto px-[35px] flex flex-col">
           {/* Main Title - Centered vertically, pushed down */}
@@ -451,10 +462,10 @@ export default function Home() {
       </section>
 
       {/* Footer */}
-      <footer className="relative h-[1049px] bg-black overflow-hidden">
-        {/* Content */}
-        <div className="relative z-10 h-full max-w-[1440px] mx-auto px-[120px]">
-          <div className="pt-[150px] flex justify-between">
+      <footer className="relative bg-black overflow-hidden flex flex-col">
+        {/* Top - Content */}
+        <div className="max-w-[1440px] mx-auto px-[120px] pt-[100px] pb-[50px] w-full">
+          <div className="flex justify-between">
             {/* Links */}
             <div className="flex gap-[100px]">
               {/* Main Links */}
@@ -515,6 +526,23 @@ export default function Home() {
               </Link>
             </div>
           </div>
+        </div>
+
+        {/* Bottom - Unicorn Studio Background with mask */}
+        <div
+          className="relative w-full h-[712px]"
+          style={{
+            mask: 'linear-gradient(0deg, rgba(0, 0, 0, 0) 0%, rgb(0, 0, 0) 7.63%, rgb(0, 0, 0) 86.96%, rgba(0, 0, 0, 0) 97.38%)',
+            WebkitMask: 'linear-gradient(0deg, rgba(0, 0, 0, 0) 0%, rgb(0, 0, 0) 7.63%, rgb(0, 0, 0) 86.96%, rgba(0, 0, 0, 0) 97.38%)'
+          }}
+        >
+          <UnicornScene
+            projectId="G0RtYVQ6drblW3LCkbKu?production=true"
+            style={{ width: "100%", height: "100%" }}
+            scale={1}
+            dpi={1.5}
+            lazyLoad={true}
+          />
         </div>
       </footer>
     </div>
