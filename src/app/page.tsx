@@ -531,16 +531,6 @@ export default function Home() {
     // Connect Lenis to GSAP ScrollTrigger
     lenis.on('scroll', ScrollTrigger.update);
 
-    // Show scrollbar when scrolling, hide after idle
-    let scrollTimeout: NodeJS.Timeout;
-    lenis.on('scroll', () => {
-      document.documentElement.classList.add('is-scrolling');
-      clearTimeout(scrollTimeout);
-      scrollTimeout = setTimeout(() => {
-        document.documentElement.classList.remove('is-scrolling');
-      }, 1000);
-    });
-
     gsap.ticker.add((time) => {
       lenis.raf(time * 1000);
     });
@@ -701,8 +691,6 @@ export default function Home() {
     }
 
     return () => {
-      clearTimeout(scrollTimeout);
-      document.documentElement.classList.remove('is-scrolling');
       lenis.destroy();
       ScrollTrigger.getAll().forEach(t => t.kill());
     };
