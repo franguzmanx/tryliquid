@@ -7,10 +7,8 @@ export default function UnicornScript() {
   useEffect(() => {
     // Re-init on mount and periodically to catch all elements
     const initUnicorn = () => {
-      // @ts-expect-error - UnicornStudio is loaded via script
-      if (window.UnicornStudio) {
-        // @ts-expect-error - UnicornStudio is loaded via script
-        window.UnicornStudio.init();
+      if ((window as unknown as { UnicornStudio?: { init: () => void } }).UnicornStudio) {
+        (window as unknown as { UnicornStudio: { init: () => void } }).UnicornStudio.init();
       }
     };
 
@@ -44,10 +42,8 @@ export default function UnicornScript() {
       src="https://cdn.unicorn.studio/v1.3.2/unicornStudio.umd.js"
       strategy="beforeInteractive"
       onLoad={() => {
-        // @ts-expect-error - UnicornStudio is loaded via script
-        if (window.UnicornStudio) {
-          // @ts-expect-error - UnicornStudio is loaded via script
-          window.UnicornStudio.init();
+        if ((window as unknown as { UnicornStudio?: { init: () => void } }).UnicornStudio) {
+          (window as unknown as { UnicornStudio: { init: () => void } }).UnicornStudio.init();
         }
       }}
     />
