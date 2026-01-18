@@ -54,7 +54,8 @@ export default function ScrollFrames({
         trigger: containerRef.current,
         start: "top top",
         end: "bottom bottom",
-        scrub: 0.5, // Smoother scrub
+        scrub: true,
+        invalidateOnRefresh: true,
         onUpdate: (self) => {
           const frame = Math.round(self.progress * (frameCount - 1)) + 1;
           if (!isNaN(frame) && frame >= 1 && frame <= frameCount) {
@@ -64,16 +65,26 @@ export default function ScrollFrames({
       });
 
       ScrollTrigger.refresh();
-    }, 200);
+    }, 300);
 
     // Refresh again after images load
     const refreshTimeout = setTimeout(() => {
       ScrollTrigger.refresh();
     }, 1500);
 
+    // Refresh on window load
+    const handleLoad = () => ScrollTrigger.refresh();
+    window.addEventListener('load', handleLoad);
+
+    // Refresh on resize
+    const handleResize = () => ScrollTrigger.refresh();
+    window.addEventListener('resize', handleResize);
+
     return () => {
       clearTimeout(initTimeout);
       clearTimeout(refreshTimeout);
+      window.removeEventListener('load', handleLoad);
+      window.removeEventListener('resize', handleResize);
       if (trigger) trigger.kill();
     };
   }, [frameCount]);

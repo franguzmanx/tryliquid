@@ -54,7 +54,8 @@ export default function LeverageScroll({
         trigger: containerRef.current,
         start: "top top",
         end: "bottom bottom",
-        scrub: 0.5, // Smoother scrub
+        scrub: true,
+        invalidateOnRefresh: true,
         onUpdate: (self) => {
           const progress = self.progress;
           const leverage = minLeverage + progress * (maxLeverage - minLeverage);
@@ -65,16 +66,26 @@ export default function LeverageScroll({
       });
 
       ScrollTrigger.refresh();
-    }, 200);
+    }, 300);
 
     // Refresh again after content loads
     const refreshTimeout = setTimeout(() => {
       ScrollTrigger.refresh();
     }, 1500);
 
+    // Refresh on window load
+    const handleLoad = () => ScrollTrigger.refresh();
+    window.addEventListener('load', handleLoad);
+
+    // Refresh on resize
+    const handleResize = () => ScrollTrigger.refresh();
+    window.addEventListener('resize', handleResize);
+
     return () => {
       clearTimeout(initTimeout);
       clearTimeout(refreshTimeout);
+      window.removeEventListener('load', handleLoad);
+      window.removeEventListener('resize', handleResize);
       if (trigger) trigger.kill();
     };
   }, [baseAmount, maxAmount, minLeverage, maxLeverage, currencySymbol]);
