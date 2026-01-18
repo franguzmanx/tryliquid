@@ -1,6 +1,6 @@
 {
-  "buildCommand": "bun run build",
-  "outputDirectory": ".next",
-  "installCommand": "bun install",
+  "buildCommand": "cd landing-page && bun run build",
+  "outputDirectory": "landing-page/.next",
+  "installCommand": "cd landing-page && bun install",
   "framework": "nextjs"
 }
