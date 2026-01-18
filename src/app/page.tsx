@@ -293,10 +293,9 @@ export default function Home() {
       {/* Hero Section */}
       <header className="relative h-[100vh] min-h-[900px] bg-black overflow-hidden">
         {/* Unicorn Studio Background */}
-        <div className="absolute inset-0 z-0">
+        <div className="absolute inset-0 z-0 w-full h-full">
           <UnicornScene
             projectId="5ZnTqqnrUWtHurlAQ3qH?production=true"
-            style={{ width: "100%", height: "100%" }}
             scale={1}
             dpi={1.5}
             lazyLoad={false}
@@ -538,7 +537,6 @@ export default function Home() {
         >
           <UnicornScene
             projectId="G0RtYVQ6drblW3LCkbKu?production=true"
-            style={{ width: "100%", height: "100%" }}
             scale={1}
             dpi={1.5}
             lazyLoad={true}
